@@ -1,11 +1,15 @@
 import zipfile
 import os
+import math
 import pandas as pd
 from tabulate import tabulate
+from datetime import datetime
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
 
-# Path to the zip file and the extraction folder
-zip_file_path = '~/Downloads/MailDate 12-10-24_241205-104038.zip'  # Update with your path
-extracted_folder = '~/Downloads/Extracted'  # Update with your path
+
+# Path to the zip file and extraction folder
+zip_file_path = os.path.expanduser('~/Downloads/MailDate 12-10-24_241205-104038.zip')  # Update with your path
+extracted_folder = 'data/extracted'  # Update with your path
 
 # Extract the zip file
 with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
@@ -22,7 +26,7 @@ if not csm_files:
 # Read the CSM file (we assume it's the first one found)
 csm_file_path = os.path.join(maildat_folder, csm_files[0])
 
-# Define the field names, positions, and lengths as per your provided information
+# Define all fields based on the specification
 fields_positions = [
     ("Job ID", 1, 8),
     ("Segment ID", 9, 12),
@@ -102,19 +106,117 @@ fields_positions = [
     ("Closing Character", 790, 790)
 ]
 
+# Helper function to convert weight to pounds
+def convert_weight(weight_field):
+    if weight_field:
+        # Convert to a floating-point number and round up to the nearest whole number
+        return math.ceil(float(f"{weight_field[:-4]}.{weight_field[-4:]}"))
+    return None
+
+# Helper function to format dates
+def format_date(date_field):
+    try:
+        if not date_field or len(date_field) != 8:
+            return None  # Return None for empty or invalid date fields
+        return datetime.strptime(date_field, "%Y%m%d").strftime("%m-%d-%Y")
+    except ValueError:
+        return None  # Handle any other parsing errors
+
 # Parse all records from the CSM file
 parsed_records = []
 with open(csm_file_path, 'r') as file:
     for record in file.readlines():
-        parsed_record = {field[0]: record[field[1]-1:field[2]].strip() for field in fields_positions}
+        parsed_record = {field[0]: record[field[1]-1:field[2]].strip() for field in fields_positions if record[field[1]-1:field[2]].strip()}
+
+     # Convert Total Weight to pounds
+        if "Total Weight" in parsed_record:
+            parsed_record["Total Weight"] = convert_weight(parsed_record["Total Weight"])
+        
+        # Format Scheduled Induction Start Date
+        if "Scheduled Induction Start Date" in parsed_record:
+            parsed_record["Scheduled Induction Start Date"] = format_date(parsed_record["Scheduled Induction Start Date"])
+        
+        # Ensure Number of Pieces is represented properly
+        if "Number of Pieces" in parsed_record:
+            parsed_record["Number of Pieces"] = int(parsed_record["Number of Pieces"]) if parsed_record["Number of Pieces"].isdigit() else None
+        
+       
+
+
         parsed_records.append(parsed_record)
 
-# Convert parsed records to DataFrame
+
+# Create the full DataFrame
 df_csm = pd.DataFrame(parsed_records)
 
-# Option 1: Display the DataFrame in a nicely formatted way using tabulate
-from tabulate import tabulate
+# Save the full data to a CSV file
+df_csm.to_csv('data/parsed_csm.csv', index=False)
+
+# Display the full dataset in the terminal
+print("\nFull Parsed Data (Terminal):")
 print(tabulate(df_csm, headers='keys', tablefmt='pretty', showindex=False))
 
-# Option 2: Save the DataFrame as a CSV for later use
-df_csm.to_csv('~/Downloads/parsed_csm.csv', index=False)  # Update with your desired path
+# Filtered fields for app visualization
+app_display_fields = [
+    "Job ID",
+    "Display Container ID",
+    "Container Destination Zip",
+    "Label: Destination Line 1",
+    "Scheduled Induction Start Date",
+    "Number of Pieces",
+    "Total Weight",
+    "Label: IM™ Container - Final"
+]
+
+df_filtered = df_csm[app_display_fields]
+
+# Display app-specific fields in the terminal
+print("\nFiltered Data for App Display:")
+print(tabulate(df_filtered, headers='keys', tablefmt='pretty', showindex=False))
+
+
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
+import pandas as pd
+
+
+class CSMTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QVBoxLayout(self)
+
+        # Load data
+        self.df = self.load_data()
+
+        if self.df.empty:
+            # Show message if no data is available
+            self.layout.addWidget(QLabel("No CSM data available. Please process data first."))
+        else:
+            # Create table
+            self.create_table()
+
+    def load_data(self):
+    """Load the processed data directly from df_filtered."""
+    try:
+        # Ensure df_filtered is available
+        if 'df_filtered' in globals() or 'df_filtered' in locals():
+            return df_filtered
+        else:
+            raise ValueError("df_filtered is not defined. Ensure it is processed before accessing.")
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return pd.DataFrame([])  # Return an empty DataFrame if unavailable
+
+    def create_table(self):
+        """Create a table widget to display the DataFrame."""
+        table = QTableWidget()
+        table.setRowCount(len(self.df))
+        table.setColumnCount(len(self.df.columns))
+        table.setHorizontalHeaderLabels(self.df.columns)
+
+        # Populate table
+        for row_idx, row in self.df.iterrows():
+            for col_idx, value in enumerate(row):
+                table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
+
+        # Add table to layout
+        self.layout.addWidget(table)
