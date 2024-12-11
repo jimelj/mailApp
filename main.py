@@ -51,34 +51,102 @@ class MainTab(QWidget):
 #         self.layout.addWidget(QLabel("Feature under development: Print Skid Tags"))
 
 
+# class MainApp(QMainWindow):
+#     """Main application window with tabbed navigation."""
+#     def __init__(self):
+#         super().__init__()
+#         self.setWindowTitle("Mail Data Management System")
+#         self.resize(1000, 700)
+
+#         self.tab_widget = QTabWidget()
+#         self.setCentralWidget(self.tab_widget)
+
+#         # Create the CSM tab and Main tab and Print Tab
+#         self.csm_tab = CSMTab(pd.DataFrame())
+#         self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
+#         self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
+
+#         # Add tabs
+#         self.tab_widget.addTab(self.main_tab, "Main")
+#         self.tab_widget.addTab(self.csm_tab, "CSM")
+#         self.tab_widget.addTab(PrintSkidTagsTab(), "Print Skid Tags")
+
+
+# if __name__ == "__main__":
+#     app = QApplication(sys.argv)
+#     main_window = MainApp()
+#     # main_window.show()
+#     # Show the window maximized (full-screen mode)
+#     main_window.showMaximized()
+#     sys.exit(app.exec())
+
+import os
+import shutil
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QApplication
+
 class MainApp(QMainWindow):
     """Main application window with tabbed navigation."""
+    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mail Data Management System")
         self.resize(1000, 700)
 
-        self.tab_widget = QTabWidget()
-        self.setCentralWidget(self.tab_widget)
+        # Your existing setup code...
 
-        # Create the CSM tab and Main tab and Print Tab
-        self.csm_tab = CSMTab(pd.DataFrame())
-        self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
-        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
+    def closeEvent(self, event):
+        """Override close event to clean up directories on exit."""
+        self.clean_up_directories()
 
-        # Add tabs
-        self.tab_widget.addTab(self.main_tab, "Main")
-        self.tab_widget.addTab(self.csm_tab, "CSM")
-        self.tab_widget.addTab(PrintSkidTagsTab(), "Print Skid Tags")
+        # Allow the application to exit
+        event.accept()
 
+    def clean_up_directories(self):
+        """Delete all contents inside 'data' directory but leave 'data/extracted' intact."""
+        # Define the directories that need cleaning
+        directory_to_clean = 'data'
+        extracted_directory = 'data/extracted'
+
+        if os.path.exists(directory_to_clean):
+            # Walk through the directory and remove all files and subdirectories inside 'data'
+            for root, dirs, files in os.walk(directory_to_clean, topdown=False):
+                # Prevent 'data/extracted' from being cleaned
+                if extracted_directory in dirs:
+                    dirs.remove('extracted')  # Skip cleaning 'data/extracted'
+
+                # Delete all files in the directory
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    os.remove(file_path)  # Remove the file
+
+                # Delete all subdirectories except for 'data/extracted'
+                for dir in dirs:
+                    dir_path = os.path.join(root, dir)
+                    os.rmdir(dir_path)  # Remove empty directories
+
+            print("Data directory cleaned up successfully.")
+        else:
+            self.show_error(f"Directory '{directory_to_clean}' not found.")
+        
+        # Ensure 'data/extracted' is empty (remove files inside it if any)
+        if os.path.exists(extracted_directory):
+            for root, dirs, files in os.walk(extracted_directory):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    os.remove(file_path)  # Remove any files inside 'data/extracted'
+
+            print("Data/extracted directory is now empty.")
+
+    def show_error(self, message):
+        """Display an error message."""
+        print(message)  # Debugging message
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    main_window = MainApp()
-    # main_window.show()
-    # Show the window maximized (full-screen mode)
-    main_window.showMaximized()
-    sys.exit(app.exec())
+    app = QApplication([])
+    window = MainApp()
+    window.show()
+    app.exec()
 
 
     # TODO: Implement print display and actually print
