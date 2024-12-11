@@ -4,7 +4,7 @@ import math
 import pandas as pd
 from tabulate import tabulate
 from datetime import datetime
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView
 
 
 # Path to the zip file and extraction folder
@@ -180,43 +180,34 @@ import pandas as pd
 
 
 class CSMTab(QWidget):
-    def __init__(self):
+    def __init__(self, df_filtered):
         super().__init__()
+        self.df_filtered = df_filtered  # Use the provided DataFrame
         self.layout = QVBoxLayout(self)
 
-        # Load data
-        self.df = self.load_data()
-
-        if self.df.empty:
+        if self.df_filtered.empty:
             # Show message if no data is available
             self.layout.addWidget(QLabel("No CSM data available. Please process data first."))
         else:
             # Create table
             self.create_table()
 
-    def load_data(self):
-    """Load the processed data directly from df_filtered."""
-    try:
-        # Ensure df_filtered is available
-        if 'df_filtered' in globals() or 'df_filtered' in locals():
-            return df_filtered
-        else:
-            raise ValueError("df_filtered is not defined. Ensure it is processed before accessing.")
-    except Exception as e:
-        print(f"Error loading data: {e}")
-        return pd.DataFrame([])  # Return an empty DataFrame if unavailable
-
     def create_table(self):
         """Create a table widget to display the DataFrame."""
         table = QTableWidget()
-        table.setRowCount(len(self.df))
-        table.setColumnCount(len(self.df.columns))
-        table.setHorizontalHeaderLabels(self.df.columns)
+        table.setRowCount(len(self.df_filtered))
+        table.setColumnCount(len(self.df_filtered.columns))
+        table.setHorizontalHeaderLabels(self.df_filtered.columns)
 
-        # Populate table
-        for row_idx, row in self.df.iterrows():
+        # Populate the table with data
+        for row_idx, row in self.df_filtered.iterrows():
             for col_idx, value in enumerate(row):
                 table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
 
-        # Add table to layout
+        # Explicitly resize columns based on content and header
+        header = table.horizontalHeader()
+        for col in range(len(self.df_filtered.columns)):
+            header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
+
+        # Add the table to the layout
         self.layout.addWidget(table)
