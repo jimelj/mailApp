@@ -2,6 +2,8 @@ import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
 from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
+import os
+import shutil
 import pandas as pd
 
 
@@ -51,49 +53,25 @@ class MainTab(QWidget):
 #         self.layout.addWidget(QLabel("Feature under development: Print Skid Tags"))
 
 
-# class MainApp(QMainWindow):
-#     """Main application window with tabbed navigation."""
-#     def __init__(self):
-#         super().__init__()
-#         self.setWindowTitle("Mail Data Management System")
-#         self.resize(1000, 700)
-
-#         self.tab_widget = QTabWidget()
-#         self.setCentralWidget(self.tab_widget)
-
-#         # Create the CSM tab and Main tab and Print Tab
-#         self.csm_tab = CSMTab(pd.DataFrame())
-#         self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
-#         self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
-
-#         # Add tabs
-#         self.tab_widget.addTab(self.main_tab, "Main")
-#         self.tab_widget.addTab(self.csm_tab, "CSM")
-#         self.tab_widget.addTab(PrintSkidTagsTab(), "Print Skid Tags")
-
-
-# if __name__ == "__main__":
-#     app = QApplication(sys.argv)
-#     main_window = MainApp()
-#     # main_window.show()
-#     # Show the window maximized (full-screen mode)
-#     main_window.showMaximized()
-#     sys.exit(app.exec())
-
-import os
-import shutil
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMainWindow, QApplication
-
 class MainApp(QMainWindow):
     """Main application window with tabbed navigation."""
-    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mail Data Management System")
         self.resize(1000, 700)
 
-        # Your existing setup code...
+        self.tab_widget = QTabWidget()
+        self.setCentralWidget(self.tab_widget)
+
+        # Create the CSM tab and Main tab and Print Tab
+        self.csm_tab = CSMTab(pd.DataFrame())
+        self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
+        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
+
+        # Add tabs
+        self.tab_widget.addTab(self.main_tab, "Main")
+        self.tab_widget.addTab(self.csm_tab, "CSM")
+        self.tab_widget.addTab(PrintSkidTagsTab(), "Print Skid Tags")
 
     def closeEvent(self, event):
         """Override close event to clean up directories on exit."""
@@ -143,10 +121,12 @@ class MainApp(QMainWindow):
         print(message)  # Debugging message
 
 if __name__ == "__main__":
-    app = QApplication([])
-    window = MainApp()
-    window.show()
-    app.exec()
+    app = QApplication(sys.argv)
+    main_window = MainApp()
+    # main_window.show()
+    # Show the window maximized (full-screen mode)
+    main_window.showMaximized()
+    sys.exit(app.exec())
 
 
     # TODO: Implement print display and actually print
