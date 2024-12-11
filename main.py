@@ -1,14 +1,16 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
-from csmController import CSMTab, parse_zip_and_prepare_data
+from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmController
+from printController import PrintSkidTagsTab  # Import the tab from printController
 import pandas as pd
 
 
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
-    def __init__(self, csm_tab):
+    def __init__(self, csm_tab, skid_tags_tab):
         super().__init__()
         self.csm_tab = csm_tab
+        self.skid_tags_tab = skid_tags_tab
         self.layout = QVBoxLayout(self)
 
         # Welcome and instructions
@@ -32,6 +34,7 @@ class MainTab(QWidget):
                 # Parse the ZIP file and update the CSM tab
                 df_filtered = parse_zip_and_prepare_data(zip_file_path)
                 self.csm_tab.update_data(df_filtered)
+
                 self.feedback_label.setText("File uploaded and data processed successfully!")
                 self.feedback_label.setStyleSheet("color: green;")
             except Exception as e:
@@ -40,12 +43,12 @@ class MainTab(QWidget):
                 self.feedback_label.setStyleSheet("color: red;")
 
 
-class PrintSkidTagsTab(QWidget):
-    """Placeholder for future functionality."""
-    def __init__(self):
-        super().__init__()
-        self.layout = QVBoxLayout(self)
-        self.layout.addWidget(QLabel("Feature under development: Print Skid Tags"))
+# class PrintSkidTagsTab(QWidget):
+#     """Placeholder for future functionality."""
+#     def __init__(self):
+#         super().__init__()
+#         self.layout = QVBoxLayout(self)
+#         self.layout.addWidget(QLabel("Feature under development: Print Skid Tags"))
 
 
 class MainApp(QMainWindow):
@@ -58,9 +61,10 @@ class MainApp(QMainWindow):
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
 
-        # Create the CSM tab and Main tab
+        # Create the CSM tab and Main tab and Print Tab
         self.csm_tab = CSMTab(pd.DataFrame())
-        self.main_tab = MainTab(self.csm_tab)
+        self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
+        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
 
         # Add tabs
         self.tab_widget.addTab(self.main_tab, "Main")
@@ -75,3 +79,8 @@ if __name__ == "__main__":
     # Show the window maximized (full-screen mode)
     main_window.showMaximized()
     sys.exit(app.exec())
+
+
+    # TODO: Implement print display and actually print
+    # TODO: should we clear data on exit?
+    # TODO: Display IHD on main page after data is uploaded so when moving back and forth its relavant also maybe put it in the status bar!!!
