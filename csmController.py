@@ -106,11 +106,16 @@ fields_positions = [
     ("Closing Character", 790, 790)
 ]
 
-# Helper function to convert weight to pounds
+# Helper function to convert weight to pounds and append "LBS"
 def convert_weight(weight_field):
     if weight_field:
-        # Convert to a floating-point number and round up to the nearest whole number
-        return math.ceil(float(f"{weight_field[:-4]}.{weight_field[-4:]}"))
+        try:
+            # Convert to a floating-point number, round up, and append "LBS"
+            weight_in_lbs = math.ceil(float(f"{weight_field[:-4]}.{weight_field[-4:]}"))
+            return f"{weight_in_lbs} LBS"
+        except ValueError:
+            # Handle invalid weight formats gracefully
+            return None
     return None
 
 # Helper function to format dates
