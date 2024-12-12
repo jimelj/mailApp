@@ -1,14 +1,15 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
-from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmController
-from printController import PrintSkidTagsTab  # Import the tab from printController
 import os
 import shutil
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
 import pandas as pd
+from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmControllerfrom printController import PrintSkidTagsTab  # Import the PrintSkidTagsTab class from printController
+from printController import PrintSkidTagsTab  # Import the tab from printController
 
 
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
+
     def __init__(self, csm_tab, skid_tags_tab):
         super().__init__()
         self.csm_tab = csm_tab
@@ -29,7 +30,7 @@ class MainTab(QWidget):
         self.layout.addWidget(self.feedback_label)
 
     def upload_zip(self):
-        """Handle ZIP file upload and parsing."""
+        """Handle ZIP file upload and processing."""
         zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", "", "ZIP Files (*.zip)")
         if zip_file_path:
             try:
@@ -39,22 +40,40 @@ class MainTab(QWidget):
 
                 self.feedback_label.setText("File uploaded and data processed successfully!")
                 self.feedback_label.setStyleSheet("color: green;")
+                # # Unzip the file into the data/extracted directory
+                extracted_path = "data/extracted"
+                # if os.path.exists(extracted_path):
+                #     shutil.rmtree(extracted_path)
+                # os.makedirs(extracted_path)
+
+                # shutil.unpack_archive(zip_file_path, extracted_path)
+                # print(f"ZIP file extracted to: {extracted_path}")
+
+                # # Load and process CSM data
+                # csm_file_path = os.path.join(extracted_path, "Reports", "CSMFile.txt")  # Adjust the filename as needed
+                # if os.path.exists(csm_file_path):
+                #     self.csm_tab.process_csm_data(csm_file_path)
+                # else:
+                #     print("No CSM file found in the extracted directory.")
+
+                # Load SkidTags.pdf if it exists
+                skid_tags_pdf_path = os.path.join(extracted_path, "Reports", "SkidTags.pdf")
+                if os.path.exists(skid_tags_pdf_path):
+                    self.skid_tags_tab.load_pdf(skid_tags_pdf_path)
+                    self.feedback_label.setText("ZIP file uploaded and data processed successfully!")
+                    self.feedback_label.setStyleSheet("color: green;")
+                else:
+                    self.feedback_label.setText("SkidTags.pdf not found in the extracted ZIP file.")
+                    self.feedback_label.setStyleSheet("color: red;")
+
             except Exception as e:
-                # Display error feedback
-                self.feedback_label.setText(f"Error: {e}")
+                self.feedback_label.setText(f"Error processing ZIP file: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
-
-
-# class PrintSkidTagsTab(QWidget):
-#     """Placeholder for future functionality."""
-#     def __init__(self):
-#         super().__init__()
-#         self.layout = QVBoxLayout(self)
-#         self.layout.addWidget(QLabel("Feature under development: Print Skid Tags"))
 
 
 class MainApp(QMainWindow):
     """Main application window with tabbed navigation."""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mail Data Management System")
@@ -63,72 +82,33 @@ class MainApp(QMainWindow):
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
 
-        # Create the CSM tab and Main tab and Print Tab
-        self.csm_tab = CSMTab(pd.DataFrame())
-        self.skid_tags_tab = PrintSkidTagsTab()  # Use the PrintSkidTagsTab from printController
+        # Create the tabs
+        self.csm_tab = CSMTab(pd.DataFrame())  # Use the existing implementation of CSMTab
+        self.skid_tags_tab = PrintSkidTagsTab()
         self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
 
-        # Add tabs
+        # Add tabs to the application
         self.tab_widget.addTab(self.main_tab, "Main")
         self.tab_widget.addTab(self.csm_tab, "CSM")
-        self.tab_widget.addTab(PrintSkidTagsTab(), "Print Skid Tags")
+        self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
 
     def closeEvent(self, event):
-        """Override close event to clean up directories on exit."""
+        """Clean up directories when the application closes."""
         self.clean_up_directories()
-
-        # Allow the application to exit
         event.accept()
 
     def clean_up_directories(self):
-        """Delete all contents inside 'data' directory but leave 'data/extracted' intact."""
-        # Define the directories that need cleaning
-        directory_to_clean = 'data'
-        extracted_directory = 'data/extracted'
-
-        if os.path.exists(directory_to_clean):
-            # Walk through the directory and remove all files and subdirectories inside 'data'
-            for root, dirs, files in os.walk(directory_to_clean, topdown=False):
-                # Prevent 'data/extracted' from being cleaned
-                if extracted_directory in dirs:
-                    dirs.remove('extracted')  # Skip cleaning 'data/extracted'
-
-                # Delete all files in the directory
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    os.remove(file_path)  # Remove the file
-
-                # Delete all subdirectories except for 'data/extracted'
-                for dir in dirs:
-                    dir_path = os.path.join(root, dir)
-                    os.rmdir(dir_path)  # Remove empty directories
-
-            print("Data directory cleaned up successfully.")
-        else:
-            self.show_error(f"Directory '{directory_to_clean}' not found.")
-        
-        # Ensure 'data/extracted' is empty (remove files inside it if any)
+        """Delete all contents inside the 'data/extracted' directory."""
+        extracted_directory = "data/extracted"
         if os.path.exists(extracted_directory):
-            for root, dirs, files in os.walk(extracted_directory):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    os.remove(file_path)  # Remove any files inside 'data/extracted'
+            shutil.rmtree(extracted_directory)
+            print(f"Cleaned up directory: {extracted_directory}")
+        else:
+            print(f"No directory to clean: {extracted_directory}")
 
-            print("Data/extracted directory is now empty.")
-
-    def show_error(self, message):
-        """Display an error message."""
-        print(message)  # Debugging message
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_window = MainApp()
-    # main_window.show()
-    # Show the window maximized (full-screen mode)
-    main_window.showMaximized()
+    main_window.show()
     sys.exit(app.exec())
-
-
-    # TODO: Implement print display and actually print
-    # TODO: should we clear data on exit?
-    # TODO: Display IHD on main page after data is uploaded so when moving back and forth its relavant also maybe put it in the status bar!!!
