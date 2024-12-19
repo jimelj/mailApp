@@ -131,5 +131,5 @@ if __name__ == "__main__":
 
     # TODO: Implement print display and actually print...done
     # TODO: should we clear data on exit?...done
-    # TODO: fix printcontroller to behave like csmcontroller load data only when zip is
+    # TODO: fix printcontroller to behave like csmcontroller load data only when zip is..Done
     # TODO: Display IHD on main page after data is uploaded so when moving back and forth its relavant also maybe put it in the status bar!!!
