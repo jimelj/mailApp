@@ -142,28 +142,57 @@ def parse_csm_file(csm_file_path):
     #             parsed_record[field_name] = raw_value
     #         parsed_records.append(parsed_record)
 
-# Parse all records from the CSM file
-    parsed_records = []
-    with open(csm_file_path, 'r') as file:
-        for record in file.readlines():
-            parsed_record = {field[0]: record[field[1]-1:field[2]].strip() for field in fields_positions if record[field[1]-1:field[2]].strip()}
+# # Parse all records from the CSM file <----OLD
+#     parsed_records = []
+#     with open(csm_file_path, 'r') as file:
+#         for record in file.readlines():
+#             parsed_record = {field[0]: record[field[1]-1:field[2]].strip() for field in fields_positions if record[field[1]-1:field[2]].strip()}
 
-        # Convert Total Weight to pounds
-            if "Total Weight" in parsed_record:
-                parsed_record["Total Weight"] = convert_weight(parsed_record["Total Weight"])
+#         # Convert Total Weight to pounds
+#             if "Total Weight" in parsed_record:
+#                 parsed_record["Total Weight"] = convert_weight(parsed_record["Total Weight"])
             
-            # Format Scheduled Induction Start Date
-            if "Scheduled Induction Start Date" in parsed_record:
-                parsed_record["Scheduled Induction Start Date"] = format_date(parsed_record["Scheduled Induction Start Date"])
+#             # Format Scheduled Induction Start Date
+#             if "Scheduled Induction Start Date" in parsed_record:
+#                 parsed_record["Scheduled Induction Start Date"] = format_date(parsed_record["Scheduled Induction Start Date"])
             
-            # Ensure Number of Pieces is represented properly
-            if "Number of Pieces" in parsed_record:
-                parsed_record["Number of Pieces"] = int(parsed_record["Number of Pieces"]) if parsed_record["Number of Pieces"].isdigit() else None
+#             # Ensure Number of Pieces is represented properly
+#             if "Number of Pieces" in parsed_record:
+#                 parsed_record["Number of Pieces"] = int(parsed_record["Number of Pieces"]) if parsed_record["Number of Pieces"].isdigit() else None
             
         
+    parsed_records = []
+    chunk_size = 500
+    total_rows = 0
 
+    with open(csm_file_path, 'r') as file:
+        for i, line in enumerate(file):
+            decoded_line = line.strip()
+            if not decoded_line:
+                continue
+
+            parsed_record = {
+                field[0]: decoded_line[field[1] - 1:field[2]].strip()
+                for field in fields_positions
+                if field[1] - 1 < len(decoded_line)
+            }
+
+            if "Total Weight" in parsed_record:
+                parsed_record["Total Weight"] = convert_weight(parsed_record["Total Weight"])
+            if "Scheduled Induction Start Date" in parsed_record:
+                parsed_record["Scheduled Induction Start Date"] = format_date(parsed_record["Scheduled Induction Start Date"])
+            if "Number of Pieces" in parsed_record:
+                parsed_record["Number of Pieces"] = int(parsed_record["Number of Pieces"]) if parsed_record["Number of Pieces"].isdigit() else None
 
             parsed_records.append(parsed_record)
+
+            if len(parsed_records) >= chunk_size:
+                df_chunk = pd.DataFrame(parsed_records)
+                print(f"Processed chunk of {len(parsed_records)} rows")
+                total_rows += len(parsed_records)
+                parsed_records.clear()
+
+        parsed_records.append(parsed_record)
 
 
     df_csm = pd.DataFrame(parsed_records)
@@ -193,92 +222,55 @@ def parse_csm_file(csm_file_path):
             # Load the parsed CSM and facility report data
             parsed_csm = pd.read_csv(parsed_csm_path)
             facility_report = pd.read_excel(facility_report_path, header=1)
-
+            
             # Extract the last 6 characters for comparison
             parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].str[-6:]
             facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
+            # parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].astype(str).str[-6:]
+            # facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
 
-            # Aggregate facility data if needed (e.g., ensure unique keys)
-            facility_report_aggregated = facility_report.groupby('Last_6_Dropsite_Key').first().reset_index()
-
-            # Perform the merge to add information from facility_report to parsed_csm
-            parsed_csm = pd.merge(
-                parsed_csm,
-                facility_report_aggregated[['Last_6_Dropsite_Key', 'Address', 'City', 'State', 'ZIP Code']],
+            # Debugging: Print the extracted keys
+            print("Parsed CSM Last 6 Characters:")
+            print(parsed_csm[['Entry Point - Actual/Delivery Locale Key', 'Last_6_Locale_Key']].head())
+            print("\nFacility Report Last 6 Characters:")
+            print(facility_report[['Dropsite Key', 'Last_6_Dropsite_Key']].head())
+            
+            # Perform the comparison
+            matches = pd.merge(
+                parsed_csm[['Last_6_Locale_Key']],
+                facility_report[['Last_6_Dropsite_Key', 'Address', 'City', 'State', 'ZIP Code']],
                 left_on='Last_6_Locale_Key',
                 right_on='Last_6_Dropsite_Key',
-                how='left'
+                how='inner'
             )
+            
+            # Format the matched address as 'Address, City, State, ZIP'
+            # Ensure ZIP Code is a string and format the matched addresses
+            # matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
+            # formatted_addresses = matches.apply(
+            #     lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}",
+            #     axis=1
+            # ).tolist()
 
-            # Format the matched address
-            parsed_csm['ZIP Code'] = parsed_csm['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
-            parsed_csm['Address'] = parsed_csm.apply(
-                lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}"
-                if pd.notnull(row['Address']) and pd.notnull(row['ZIP Code'])
-                else None,
-                axis=1
-            )
-
-            # Drop unnecessary columns added during the merge
-            parsed_csm.drop(columns=['Last_6_Locale_Key', 'Last_6_Dropsite_Key'], inplace=True)
-
-            print("Hello WORLD")
-            print(parsed_csm)
-
+            # Create the 'Matched Address' column
+            matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
+            matches['Address'] = matches.apply(
+            lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}"
+            if pd.notnull(row['Address']) else None,
+            axis=1
+        )
+            
+             # Merge the addresses back into the parsed CSM data
+            parsed_csm = pd.merge(
+            parsed_csm,
+            matches[['Last_6_Locale_Key', 'Address']],
+            on='Last_6_Locale_Key',
+            how='left'
+        )
+            
             return parsed_csm
-        # try:
-        #     # Load the parsed CSM and facility report data
-        #     parsed_csm = pd.read_csv(parsed_csm_path)
-        #     facility_report = pd.read_excel(facility_report_path, header=1)
-            
-        #     # Extract the last 6 characters for comparison
-        #     parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].str[-6:]
-        #     facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
-        #     # parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].astype(str).str[-6:]
-        #     # facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
-
-        #     # Debugging: Print the extracted keys
-        #     print("Parsed CSM Last 6 Characters:")
-        #     print(parsed_csm[['Entry Point - Actual/Delivery Locale Key', 'Last_6_Locale_Key']].head())
-        #     print("\nFacility Report Last 6 Characters:")
-        #     print(facility_report[['Dropsite Key', 'Last_6_Dropsite_Key']].head())
-            
-        #     # Perform the comparison
-        #     matches = pd.merge(
-        #         parsed_csm[['Last_6_Locale_Key']],
-        #         facility_report[['Last_6_Dropsite_Key', 'Address', 'City', 'State', 'ZIP Code']],
-        #         left_on='Last_6_Locale_Key',
-        #         right_on='Last_6_Dropsite_Key',
-        #         how='inner'
-        #     )
-            
-        #     # Format the matched address as 'Address, City, State, ZIP'
-        #     # Ensure ZIP Code is a string and format the matched addresses
-        #     # matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
-        #     # formatted_addresses = matches.apply(
-        #     #     lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}",
-        #     #     axis=1
-        #     # ).tolist()
-
-        #     # Create the 'Matched Address' column
-        #     matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
-        #     matches['Address'] = matches.apply(
-        #     lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}"
-        #     if pd.notnull(row['Address']) else None,
-        #     axis=1
-        # )
-            
-        #      # Merge the addresses back into the parsed CSM data
-        #     parsed_csm = pd.merge(
-        #     parsed_csm,
-        #     matches[['Last_6_Locale_Key', 'Address']],
-        #     on='Last_6_Locale_Key',
-        #     how='left'
-        # )
-        #     print('I AM AROUND HERE')
-        #     print(parsed_csm)
-        #     return parsed_csm
-            
+            print('I AM AROUND HERE')
+            print(parsed_csm)
         except Exception as e:
             return f"An error occurred: {str(e)}"
         
