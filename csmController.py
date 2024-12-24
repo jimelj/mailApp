@@ -170,11 +170,99 @@ def parse_csm_file(csm_file_path):
 
     # Save full parsed data
     df_csm.to_csv("data/parsed_csm.csv", index=False)
-    print("Full parsed data saved to 'data/parsed_csm.csv'")
+    # print("Full parsed data saved to 'data/parsed_csm.csv'")
 
     # Print full parsed data to terminal
-    print("\nFull Parsed Data (Terminal):")
-    print(tabulate(df_csm, headers="keys", tablefmt="pretty", showindex=False))
+    # print("\nFull Parsed Data (Terminal):")
+    # print(tabulate(df_csm, headers="keys", tablefmt="pretty", showindex=False))
+
+    def match_facility_address(parsed_csm_path, facility_report_path):
+        """
+        Matches the last 6 characters of 'Entry Point - Actual/Delivery Locale Key'
+        in the parsed CSM file with 'Dropsite Key' in the facility report and 
+        returns the formatted address.
+
+        Parameters:
+            parsed_csm_path (str): Path to the parsed CSM CSV file.
+            facility_report_path (str): Path to the facility report Excel file.
+
+        Returns:
+            list: A list of formatted address strings for matches.
+        """
+        try:
+            # Load the parsed CSM and facility report data
+            parsed_csm = pd.read_csv(parsed_csm_path)
+            facility_report = pd.read_excel(facility_report_path, header=1)
+            
+            # Extract the last 6 characters for comparison
+            parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].str[-6:]
+            facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
+            # parsed_csm['Last_6_Locale_Key'] = parsed_csm['Entry Point - Actual/Delivery Locale Key'].astype(str).str[-6:]
+            # facility_report['Last_6_Dropsite_Key'] = facility_report['Dropsite Key'].astype(str).str[-6:]
+
+            # Debugging: Print the extracted keys
+            print("Parsed CSM Last 6 Characters:")
+            print(parsed_csm[['Entry Point - Actual/Delivery Locale Key', 'Last_6_Locale_Key']].head())
+            print("\nFacility Report Last 6 Characters:")
+            print(facility_report[['Dropsite Key', 'Last_6_Dropsite_Key']].head())
+            
+            # Perform the comparison
+            matches = pd.merge(
+                parsed_csm[['Last_6_Locale_Key']],
+                facility_report[['Last_6_Dropsite_Key', 'Address', 'City', 'State', 'ZIP Code']],
+                left_on='Last_6_Locale_Key',
+                right_on='Last_6_Dropsite_Key',
+                how='inner'
+            )
+            
+            # Format the matched address as 'Address, City, State, ZIP'
+            # Ensure ZIP Code is a string and format the matched addresses
+            # matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
+            # formatted_addresses = matches.apply(
+            #     lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}",
+            #     axis=1
+            # ).tolist()
+
+            # Create the 'Matched Address' column
+            matches['ZIP Code'] = matches['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
+            matches['Address'] = matches.apply(
+            lambda row: f"{row['Address']}, {row['City']}, {row['State']}, {row['ZIP Code'][:5]}"
+            if pd.notnull(row['Address']) else None,
+            axis=1
+        )
+            
+             # Merge the addresses back into the parsed CSM data
+            parsed_csm = pd.merge(
+            parsed_csm,
+            matches[['Last_6_Locale_Key', 'Address']],
+            on='Last_6_Locale_Key',
+            how='left'
+        )
+            
+            return parsed_csm
+            print('I AM AROUND HERE')
+            print(parsed_csm)
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+        
+    if __name__ == "__main__":
+        # Example: Testing the new function
+        parsed_csm_path = "data/parsed_csm.csv"  # Replace with actual path
+        facility_report_path = "facilityReport.xlsx"  # Replace with actual path
+        print ("Hello world")
+        results = match_facility_address(parsed_csm_path, facility_report_path)
+        
+        if isinstance(results, list):
+            print("Matching Facility Addresses:")
+            for address in results:
+                print(address)
+        else:
+            print(results)
+
+    
+    print("I AM HERE")
+    UpdatedParsedCSM = match_facility_address("data/parsed_csm.csv", "facilityReport.xlsx")
+    print(UpdatedParsedCSM)
 
     # Filtered fields for app display
     app_display_fields = [
@@ -186,8 +274,9 @@ def parse_csm_file(csm_file_path):
         "Number of Pieces",
         "Total Weight",
         "Label: IM™ Container - Final",
+        "Address",
     ]
-    df_filtered = df_csm[app_display_fields]
+    df_filtered = UpdatedParsedCSM[app_display_fields]
 
     # Print filtered data to terminal
     print("\nFiltered Data for App Display:")
