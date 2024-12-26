@@ -12,6 +12,8 @@ class MainTab(QWidget):
 
     def __init__(self, csm_tab, skid_tags_tab, tray_tags_tab):
         super().__init__()
+        self.setMinimumSize(1024, 768)  # Set a minimum size for the window
+        self.setGeometry(100, 100, 1200, 800)  # Position and initial size
         self.csm_tab = csm_tab
         self.skid_tags_tab = skid_tags_tab
         self.tray_tags_tab = tray_tags_tab
