@@ -1,4 +1,5 @@
 import os
+import platform  # Import this for cross-platform OS detection
 import fitz  # PyMuPDF
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
 from PySide6.QtCore import Qt
@@ -116,8 +117,14 @@ class PrintSkidTagsTab(QWidget):
             return
 
         try:
-            os.system(f"lp \"{self.pdf_path}\"")  # Print command for UNIX-like systems
-            print("Print job submitted successfully.")
+            # os.system(f"lp \"{self.pdf_path}\"")  # Print command for UNIX-like systems
+            # print("Print job submitted successfully.")
+            if platform.system() == "Windows":
+                os.startfile(self.pdf_path, "print")  # Windows-specific print command
+            elif platform.system() == "Darwin":  # macOS
+                os.system(f"open -a Preview \"{self.pdf_path}\"")  # Use Preview for printing
+            else:
+                print("Unsupported platform for printing.")    
         except Exception as e:
             self.show_error(f"Failed to print PDF: {e}")
 
