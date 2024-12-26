@@ -4,7 +4,9 @@ import pandas as pd
 from datetime import datetime
 import zipfile
 from tabulate import tabulate
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView
+import platform
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog
+import webbrowser
 
 
 def parse_zip_and_prepare_data(zip_file_path):
@@ -201,6 +203,9 @@ def parse_csm_file(csm_file_path):
             # Aggregate facility data if needed (e.g., ensure unique keys)
             facility_report_aggregated = facility_report.groupby('Last_6_Dropsite_Key').first().reset_index()
 
+            print("Before Merge: Parsed CSM")
+            print(parsed_csm.head())
+
             # Perform the merge to add information from facility_report to parsed_csm
             parsed_csm = pd.merge(
                 parsed_csm,
@@ -209,6 +214,9 @@ def parse_csm_file(csm_file_path):
                 right_on='Last_6_Dropsite_Key',
                 how='left'
             )
+
+            print("After Merge: Parsed CSM")
+            print(parsed_csm.head())
 
             # Format the matched address
             parsed_csm['ZIP Code'] = parsed_csm['ZIP Code'].astype(str)  # Ensure ZIP Code is a string
@@ -332,6 +340,11 @@ class CSMTab(QWidget):
         self.table = QTableWidget()
         self.layout.addWidget(self.table)
 
+        # "Email Report" button
+        self.email_button = QPushButton("Email Report")
+        self.email_button.clicked.connect(self.email_report)  # Connect button to functionality
+        self.layout.addWidget(self.email_button)
+
         self.update_table()
 
     def update_data(self, df_filtered):
@@ -389,3 +402,31 @@ class CSMTab(QWidget):
             # Ensure the table is visible in the layout
             if self.table not in [self.layout.itemAt(i).widget() for i in range(self.layout.count())]:
                 self.layout.addWidget(self.table)
+
+    def email_report(self):
+            """Generates an Excel report and opens the default email system."""
+            if self.df_filtered.empty:
+                print("No data available to generate the report.")
+                return
+
+            # Save the filtered DataFrame to an Excel file
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", "CSM_Report.xlsx", "Excel Files (*.xlsx)")
+            if file_path:
+                try:
+                    self.df_filtered.to_excel(file_path, index=False)
+
+                    # # Open default email client with the file attached
+                    # subject = "CSM Report"
+                    # body = "Please find the attached CSM report."
+                    # email_uri = f"mailto:?subject={subject}&body={body}&attachment={file_path}"
+                    # print(f"Opening email client with URI: {email_uri}")
+                    # webbrowser.open(email_uri)
+                                # Create the email command
+                    if platform.system() == "Windows":
+                        os.startfile(f"mailto:?subject=CSM Report&body=Attached is the CSM Report.&attachment={file_path}")
+                    elif platform.system() == "Darwin":  # macOS
+                        os.system(f"open 'mailto:?subject=CSM Report&body=Attached is the CSM Report&attachment={file_path}'")
+                    else:  # Linux (may vary based on desktop environment)
+                        webbrowser.open(f"mailto:?subject=CSM Report&body=Attached is the CSM Report&attachment={file_path}")
+                except Exception as e:
+                    print(f"Error creating or sending the report: {e}")
