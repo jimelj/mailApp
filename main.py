@@ -5,15 +5,16 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout
 import pandas as pd
 from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmControllerfrom printController import PrintSkidTagsTab  # Import the PrintSkidTagsTab class from printController
 from printController import PrintSkidTagsTab  # Import the tab from printController
-
+from trayController import PrintTrayTagsTab  # Import the tab from trayController
 
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
 
-    def __init__(self, csm_tab, skid_tags_tab):
+    def __init__(self, csm_tab, skid_tags_tab, tray_tags_tab):
         super().__init__()
         self.csm_tab = csm_tab
         self.skid_tags_tab = skid_tags_tab
+        self.tray_tags_tab = tray_tags_tab
         self.layout = QVBoxLayout(self)
 
         # Welcome and instructions
@@ -66,6 +67,16 @@ class MainTab(QWidget):
                     self.feedback_label.setText("SkidTags.pdf not found in the extracted ZIP file.")
                     self.feedback_label.setStyleSheet("color: red;")
 
+                # Load TrayTags.pdf if it exists
+                tray_tags_pdf_path = os.path.join(extracted_path, "Reports", "TrayTags.pdf")
+                if os.path.exists(tray_tags_pdf_path):
+                    self.tray_tags_tab.load_pdf(tray_tags_pdf_path)
+                    self.feedback_label.setText("ZIP file uploaded and data processed successfully!")
+                    self.feedback_label.setStyleSheet("color: green;")
+                else:
+                    self.feedback_label.setText("TrayTags.pdf not found in the extracted ZIP file.")
+                    self.feedback_label.setStyleSheet("color: red;")
+
             except Exception as e:
                 self.feedback_label.setText(f"Error processing ZIP file: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
@@ -85,12 +96,14 @@ class MainApp(QMainWindow):
         # Create the tabs
         self.csm_tab = CSMTab(pd.DataFrame())  # Use the existing implementation of CSMTab
         self.skid_tags_tab = PrintSkidTagsTab()
-        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab)
+        self.tray_tags_tab = PrintTrayTagsTab()
+        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab, self.tray_tags_tab)
 
         # Add tabs to the application
         self.tab_widget.addTab(self.main_tab, "Main")
         self.tab_widget.addTab(self.csm_tab, "CSM")
         self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
+        self.tab_widget.addTab(self.tray_tags_tab, "Print Tray Tags")
 
     def closeEvent(self, event):
         """Clean up directories when the application closes."""

@@ -292,8 +292,10 @@ def parse_csm_file(csm_file_path):
         
     if __name__ == "__main__":
         # Example: Testing the new function
-        parsed_csm_path = "data/parsed_csm.csv"  # Replace with actual path
-        facility_report_path = "facilityReport.xlsx"  # Replace with actual path
+        # parsed_csm_path = "data/parsed_csm.csv"  # Replace with actual path
+        # facility_report_path = "facilityReport.xlsx"  # Replace with actual path
+        parsed_csm_path = os.path.join("data", "parsed_csm.csv") #crossplatform
+        facility_report_path = os.path.join("facilityReport.xlsx") #crossplatform
         print ("Hello world")
         results = match_facility_address(parsed_csm_path, facility_report_path)
         
