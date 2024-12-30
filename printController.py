@@ -1,9 +1,9 @@
 import os
-import platform  # Import this for cross-platform OS detection
+import platform
 import fitz  # PyMuPDF
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage, QPainter
 
 
 class PrintSkidTagsTab(QWidget):
@@ -20,45 +20,65 @@ class PrintSkidTagsTab(QWidget):
 
         # Main layout
         self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(20, 10, 20, 10)
 
         # PDF display area
         self.page_display = QLabel("No PDF loaded")
         self.page_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.page_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.main_layout.addWidget(self.page_display)
+        self.main_layout.addWidget(self.page_display, stretch=1)
 
         # Page number label
         self.page_label = QLabel("Page 0 of 0")
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.page_label.setStyleSheet("font-size: 14px; color: #555;")
         self.main_layout.addWidget(self.page_label)
 
-        # Navigation and print buttons
+        # Navigation buttons (Back and Next)
+        self.navigation_layout = QHBoxLayout()
+        self.navigation_layout.setSpacing(15)
+
         self.back_button = QPushButton("Back")
         self.next_button = QPushButton("Next")
-        self.print_button = QPushButton("Print Skid Tags")
-
-        self.back_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.next_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.print_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        self.back_button.setMinimumHeight(30)
-        self.next_button.setMinimumHeight(30)
-        self.print_button.setMinimumHeight(30)
-
         self.back_button.clicked.connect(self.previous_page)
         self.next_button.clicked.connect(self.next_page)
+
+        # Style buttons
+        button_style = """
+            QPushButton {
+                background-color: #007BFF;
+                color: white;
+                border: 1px solid #0056b3;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-size: 16px;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
+            }
+        """
+        self.back_button.setStyleSheet(button_style)
+        self.next_button.setStyleSheet(button_style)
+
+        self.navigation_layout.addStretch()
+        self.navigation_layout.addWidget(self.back_button)
+        self.navigation_layout.addWidget(self.next_button)
+        self.navigation_layout.addStretch()
+        self.main_layout.addLayout(self.navigation_layout)
+
+        # Print button (separate row)
+        self.print_button = QPushButton("Print Skid Tags")
         self.print_button.clicked.connect(self.print_pdf)
-
-        # Buttons layout
-        self.buttons_layout = QHBoxLayout()
-        self.buttons_layout.addWidget(self.back_button)
-        self.buttons_layout.addStretch()  # Add space between buttons
-        self.buttons_layout.addWidget(self.print_button)
-        self.buttons_layout.addStretch()
-        self.buttons_layout.addWidget(self.next_button)
-
-        # Add buttons layout to the main layout
-        self.main_layout.addLayout(self.buttons_layout)
+        self.print_button.setStyleSheet(button_style)
+        self.print_layout = QHBoxLayout()
+        self.print_layout.addStretch()
+        self.print_layout.addWidget(self.print_button)
+        self.print_layout.addStretch()
+        self.main_layout.addLayout(self.print_layout)
 
     def load_pdf(self, pdf_path):
         """Load the PDF file."""
@@ -90,24 +110,29 @@ class PrintSkidTagsTab(QWidget):
             return
 
         try:
+            # Get the current page and render it as a pixmap
             page = self.doc[self.current_page_index]
             pixmap = page.get_pixmap(dpi=150)
 
             image = QImage(pixmap.samples, pixmap.width, pixmap.height, pixmap.stride, QImage.Format_RGB888)
-            pixmap = QPixmap.fromImage(image)
+            pdf_pixmap = QPixmap.fromImage(image)
 
-            # Get the available size for the QLabel
-            available_size = self.page_display.size()
+            # Calculate available size for the QLabel
+            available_width = self.width() - 50
+            available_height = self.height() - 150
 
-            # Scale the pixmap to fit the QLabel's size, maintaining aspect ratio
-            scaled_pixmap = pixmap.scaled(
-                available_size.width(),
-                available_size.height(),
+            # Set QLabel size explicitly to break feedback loop
+            self.page_display.setFixedSize(available_width, available_height)
+
+            # Scale the pixmap to fit QLabel, maintaining aspect ratio
+            scaled_pixmap = pdf_pixmap.scaled(
+                available_width,
+                available_height,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
 
-            # Set the scaled pixmap to the QLabel
+            # Set the scaled pixmap to QLabel
             self.page_display.setPixmap(scaled_pixmap)
 
             # Update page navigation
@@ -118,7 +143,7 @@ class PrintSkidTagsTab(QWidget):
             self.show_error(f"Error displaying page: {e}")
 
     def resizeEvent(self, event):
-        """Re-render the current page on window resize."""
+        """Handle window resize."""
         self.update_page()
         super().resizeEvent(event)
 
@@ -142,11 +167,11 @@ class PrintSkidTagsTab(QWidget):
 
         try:
             if platform.system() == "Windows":
-                os.startfile(self.pdf_path, "print")  # Windows-specific print command
-            elif platform.system() == "Darwin":  # macOS
-                os.system(f"open -a Preview \"{self.pdf_path}\"")  # Use Preview for printing
+                os.startfile(self.pdf_path, "print")
+            elif platform.system() == "Darwin":
+                os.system(f"open -a Preview \"{self.pdf_path}\"")
             else:
-                print("Unsupported platform for printing.")    
+                print("Unsupported platform for printing.")
         except Exception as e:
             self.show_error(f"Failed to print PDF: {e}")
 
