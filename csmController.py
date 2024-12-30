@@ -345,6 +345,28 @@ class CSMTab(QWidget):
         # "Email Report" button
         self.email_button = QPushButton("Email Report")
         self.email_button.clicked.connect(self.email_report)  # Connect button to functionality
+
+        # Button Styling
+        button_style = """
+            QPushButton {
+                background-color: #007BFF;
+                color: white;
+                border: 1px solid #0056b3;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-size: 16px;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
+            }
+        """
+        self.email_button.setStyleSheet(button_style)
+
         self.layout.addWidget(self.email_button)
 
         self.update_table()

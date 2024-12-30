@@ -5,19 +5,20 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
 from PySide6.QtGui import QGuiApplication
 import pandas as pd
-from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmControllerfrom printController import PrintSkidTagsTab  # Import the PrintSkidTagsTab class from printController
+from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
 
 # Set high DPI scaling policy
 QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
+
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
 
     def __init__(self, csm_tab, skid_tags_tab, tray_tags_tab):
         super().__init__()
-      
+
         self.setMinimumSize(1024, 768)  # Set a minimum size for the window
         self.setGeometry(100, 100, 1200, 800)  # Position and initial size
         self.csm_tab = csm_tab
@@ -32,6 +33,28 @@ class MainTab(QWidget):
         # Upload Button
         self.upload_button = QPushButton("Upload ZIP File")
         self.upload_button.clicked.connect(self.upload_zip)
+
+        # Button Styling
+        button_style = """
+            QPushButton {
+                background-color: #007BFF;
+                color: white;
+                border: 1px solid #0056b3;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-size: 16px;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
+            }
+        """
+        self.upload_button.setStyleSheet(button_style)
+
         self.layout.addWidget(self.upload_button)
 
         # Feedback Label
@@ -49,23 +72,9 @@ class MainTab(QWidget):
 
                 self.feedback_label.setText("File uploaded and data processed successfully!")
                 self.feedback_label.setStyleSheet("color: green;")
-                # # Unzip the file into the data/extracted directory
-                extracted_path = "data/extracted"
-                # if os.path.exists(extracted_path):
-                #     shutil.rmtree(extracted_path)
-                # os.makedirs(extracted_path)
-
-                # shutil.unpack_archive(zip_file_path, extracted_path)
-                # print(f"ZIP file extracted to: {extracted_path}")
-
-                # # Load and process CSM data
-                # csm_file_path = os.path.join(extracted_path, "Reports", "CSMFile.txt")  # Adjust the filename as needed
-                # if os.path.exists(csm_file_path):
-                #     self.csm_tab.process_csm_data(csm_file_path)
-                # else:
-                #     print("No CSM file found in the extracted directory.")
 
                 # Load SkidTags.pdf if it exists
+                extracted_path = "data/extracted"
                 skid_tags_pdf_path = os.path.join(extracted_path, "Reports", "SkidTags.pdf")
                 if os.path.exists(skid_tags_pdf_path):
                     self.skid_tags_tab.load_pdf(skid_tags_pdf_path)
@@ -99,9 +108,6 @@ class MainApp(QMainWindow):
         screen = QApplication.primaryScreen().availableGeometry()
 
         # Ensure the window size fits within the screen dimensions
-        # self.resize(min(1000, screen.width()), min(700, screen.height()))
-        # self.resize(1000, 700)
-        # Get the available geometry of the primary screen
         screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
         screen_width = screen_geometry.width()
         screen_height = screen_geometry.height()
