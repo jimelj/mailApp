@@ -1,5 +1,5 @@
 import os
-import platform  # For cross-platform printing
+import platform  # For OS detection
 import fitz  # PyMuPDF
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
 from PySide6.QtCore import Qt
@@ -7,10 +7,13 @@ from PySide6.QtGui import QPixmap, QImage
 
 
 class PrintTrayTagsTab(QWidget):
-    """Tab for displaying and printing TrayTags.pdf."""
+    """Tab for displaying and printing TrayTags.pdf with OS-specific behavior."""
 
     def __init__(self):
         super().__init__()
+
+        # Detect OS
+        self.current_os = platform.system()
 
         # PDF management
         self.pdf_path = None
@@ -104,38 +107,39 @@ class PrintTrayTagsTab(QWidget):
             self.show_error(f"Failed to load PDF: {e}")
 
     def update_page(self):
-        """Display the current page."""
+        """Display the current page with OS-specific behavior."""
         if self.doc is None or not (0 <= self.current_page_index < self.total_pages):
             self.show_error("Invalid page index or no document loaded.")
             return
 
         try:
-            # Get the current page and render it as a pixmap
             page = self.doc[self.current_page_index]
             pixmap = page.get_pixmap(dpi=150)
 
             image = QImage(pixmap.samples, pixmap.width, pixmap.height, pixmap.stride, QImage.Format_RGB888)
             pdf_pixmap = QPixmap.fromImage(image)
 
-            # Calculate available size for the QLabel
-            available_width = self.width() - 50
-            available_height = self.height() - 150
+            if self.current_os == "Windows":
+                # Windows logic
+                available_width = self.width() - 50
+                available_height = self.height() - 150
+                self.page_display.setFixedSize(available_width, available_height)
 
-            # Set QLabel size explicitly to break feedback loop
-            self.page_display.setFixedSize(available_width, available_height)
+                scaled_pixmap = pdf_pixmap.scaled(
+                    available_width,
+                    available_height,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+            else:
+                # macOS (and other OS) logic
+                scaled_pixmap = pdf_pixmap.scaled(
+                    self.page_display.size(),
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation
+                )
 
-            # Scale the pixmap to fit QLabel, maintaining aspect ratio
-            scaled_pixmap = pdf_pixmap.scaled(
-                available_width,
-                available_height,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-
-            # Set the scaled pixmap to QLabel
             self.page_display.setPixmap(scaled_pixmap)
-
-            # Update page navigation
             self.page_label.setText(f"Page {self.current_page_index + 1} of {self.total_pages}")
             self.back_button.setEnabled(self.current_page_index > 0)
             self.next_button.setEnabled(self.current_page_index < self.total_pages - 1)
@@ -143,7 +147,7 @@ class PrintTrayTagsTab(QWidget):
             self.show_error(f"Error displaying page: {e}")
 
     def resizeEvent(self, event):
-        """Handle window resize."""
+        """Re-render the current page on window resize."""
         self.update_page()
         super().resizeEvent(event)
 
