@@ -85,11 +85,21 @@ class PrintSkidTagsTab(QWidget):
             image = QImage(pixmap.samples, pixmap.width, pixmap.height, pixmap.stride, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
+            # scaled_pixmap = pixmap.scaled(
+            #     self.page_display.size(),
+            #     Qt.KeepAspectRatio,
+            #     Qt.SmoothTransformation
+            # )
+            # Get the available size for the widget
+            available_size = self.page_display.size()
+
+            # Scale the pixmap to fit within the available size
             scaled_pixmap = pixmap.scaled(
-                self.page_display.size(),
+                available_size,
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
+
 
             self.page_display.setPixmap(scaled_pixmap)
             self.page_label.setText(f"Page {self.current_page_index + 1} of {self.total_pages}")
