@@ -18,51 +18,47 @@ class PrintSkidTagsTab(QWidget):
         self.current_page_index = 0
         self.total_pages = 0
 
-        # Layouts
+        # Main layout
         self.main_layout = QVBoxLayout(self)
-        self.navigation_layout = QHBoxLayout()
 
         # PDF display area
         self.page_display = QLabel("No PDF loaded")
         self.page_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.page_display.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.page_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.main_layout.addWidget(self.page_display)
 
-        # Navigation buttons
-        self.back_button = QPushButton("Back")
+        # Page number label
         self.page_label = QLabel("Page 0 of 0")
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(self.page_label)
+
+        # Navigation and print buttons
+        self.back_button = QPushButton("Back")
         self.next_button = QPushButton("Next")
+        self.print_button = QPushButton("Print Skid Tags")
 
         self.back_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.next_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.print_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self.back_button.setMinimumHeight(30)
         self.next_button.setMinimumHeight(30)
+        self.print_button.setMinimumHeight(30)
 
         self.back_button.clicked.connect(self.previous_page)
         self.next_button.clicked.connect(self.next_page)
-
-        self.navigation_layout.addWidget(self.back_button)
-        self.navigation_layout.addWidget(self.page_label)
-        self.navigation_layout.addWidget(self.next_button)
-
-        # Print button
-        self.print_button = QPushButton("Print Skid Tags")
-        self.print_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.print_button.setMinimumHeight(30)
         self.print_button.clicked.connect(self.print_pdf)
 
-        # Wrap navigation and print buttons in a container layout
-        self.container_layout = QVBoxLayout()
-        self.container_layout.addLayout(self.navigation_layout)
-        self.container_layout.addWidget(self.print_button)
+        # Buttons layout
+        self.buttons_layout = QHBoxLayout()
+        self.buttons_layout.addWidget(self.back_button)
+        self.buttons_layout.addStretch()  # Add space between buttons
+        self.buttons_layout.addWidget(self.print_button)
+        self.buttons_layout.addStretch()
+        self.buttons_layout.addWidget(self.next_button)
 
-        # Add the container layout to the main layout
-        self.main_layout.addLayout(self.container_layout)
-
-        # Add stretch to ensure buttons stay visible
-        self.main_layout.addStretch()
+        # Add buttons layout to the main layout
+        self.main_layout.addLayout(self.buttons_layout)
 
     def load_pdf(self, pdf_path):
         """Load the PDF file."""
