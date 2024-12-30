@@ -52,7 +52,7 @@ class PrintSkidTagsTab(QWidget):
         # Print button
         self.print_button = QPushButton("Print Skid Tags")
         self.print_button.clicked.connect(self.print_pdf)
-        self.main_layout.addWidget(self.print_button)
+        # self.main_layout.addWidget(self.print_button)
 
         # Add the container layout to the main layout
         self.main_layout.addLayout(self.container_layout)
@@ -118,7 +118,7 @@ class PrintSkidTagsTab(QWidget):
         except Exception as e:
             self.show_error(f"Error displaying page: {e}")
 
-            
+
     def resizeEvent(self, event):
         """Re-render the current page on window resize."""
         self.update_page()
