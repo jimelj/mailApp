@@ -95,20 +95,32 @@ class PrintSkidTagsTab(QWidget):
             #     Qt.KeepAspectRatio,
             #     Qt.SmoothTransformation
             # )
-            # Get the available size for the widget
-            available_size = self.page_display.size()
+            # # Get the available size for the widget
+            # available_size = self.page_display.size()
 
-            # Scale the pixmap to fit within the available size
+            # # Scale the pixmap to fit within the available size
+            # scaled_pixmap = pixmap.scaled(
+            #     available_size,
+            #     # Qt.KeepAspectRatio,
+            #     # Qt.SmoothTransformation
+            #     Qt.AspectRatioMode.KeepAspectRatio,
+            #     Qt.TransformationMode.SmoothTransformation
+            # )
+
+            # Scale the pixmap to fit the QLabel's size, maintaining aspect ratio
+            available_size = self.page_display.size()
             scaled_pixmap = pixmap.scaled(
-                available_size,
-                # Qt.KeepAspectRatio,
-                # Qt.SmoothTransformation
+                available_size.width(),
+                available_size.height(),
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
-            )
+        )
 
-
+            # Set the scaled pixmap to the QLabel
             self.page_display.setPixmap(scaled_pixmap)
+
+
+            # self.page_display.setPixmap(scaled_pixmap)
             self.page_label.setText(f"Page {self.current_page_index + 1} of {self.total_pages}")
             self.back_button.setEnabled(self.current_page_index > 0)
             self.next_button.setEnabled(self.current_page_index < self.total_pages - 1)
