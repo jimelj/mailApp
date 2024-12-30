@@ -44,6 +44,7 @@ class PrintSkidTagsTab(QWidget):
         # Wrap navigation and print buttons in a container layout
         self.container_layout = QVBoxLayout()
         self.container_layout.addLayout(self.navigation_layout)
+        self.container_layout.addWidget(self.print_button)
 
         # Add navigation layout to the main layout
         self.main_layout.addLayout(self.navigation_layout)
@@ -116,6 +117,14 @@ class PrintSkidTagsTab(QWidget):
             self.next_button.setEnabled(self.current_page_index < self.total_pages - 1)
         except Exception as e:
             self.show_error(f"Error displaying page: {e}")
+
+            
+    def resizeEvent(self, event):
+        """Re-render the current page on window resize."""
+        self.update_page()
+        super().resizeEvent(event)
+
+
 
     def next_page(self):
         """Go to the next page."""
