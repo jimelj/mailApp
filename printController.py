@@ -41,6 +41,10 @@ class PrintSkidTagsTab(QWidget):
         self.navigation_layout.addWidget(self.page_label)
         self.navigation_layout.addWidget(self.next_button)
 
+        # Wrap navigation and print buttons in a container layout
+        self.container_layout = QVBoxLayout()
+        self.container_layout.addLayout(self.navigation_layout)
+
         # Add navigation layout to the main layout
         self.main_layout.addLayout(self.navigation_layout)
 
@@ -48,6 +52,9 @@ class PrintSkidTagsTab(QWidget):
         self.print_button = QPushButton("Print Skid Tags")
         self.print_button.clicked.connect(self.print_pdf)
         self.main_layout.addWidget(self.print_button)
+
+        # Add the container layout to the main layout
+        self.main_layout.addLayout(self.container_layout)
 
     def load_pdf(self, pdf_path):
         """Load the PDF file."""
@@ -96,8 +103,10 @@ class PrintSkidTagsTab(QWidget):
             # Scale the pixmap to fit within the available size
             scaled_pixmap = pixmap.scaled(
                 available_size,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
+                # Qt.KeepAspectRatio,
+                # Qt.SmoothTransformation
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
             )
 
 

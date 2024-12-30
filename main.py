@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
-from PySide6.QtGui import QScreen
+from PySide6.QtGui import QGuiApplication
 import pandas as pd
 from csmController import CSMTab, parse_zip_and_prepare_data # Import the tab from csmControllerfrom printController import PrintSkidTagsTab  # Import the PrintSkidTagsTab class from printController
 from printController import PrintSkidTagsTab  # Import the tab from printController
@@ -95,8 +95,15 @@ class MainApp(QMainWindow):
         screen = QApplication.primaryScreen().availableGeometry()
 
         # Ensure the window size fits within the screen dimensions
-        self.resize(min(1000, screen.width()), min(700, screen.height()))
+        # self.resize(min(1000, screen.width()), min(700, screen.height()))
         # self.resize(1000, 700)
+        # Get the available geometry of the primary screen
+        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        # Set the window size relative to the screen size (e.g., 80% width and height)
+        self.resize(int(screen_width * 0.8), int(screen_height * 0.8))
 
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
