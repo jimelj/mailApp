@@ -25,7 +25,7 @@ class PrintSkidTagsTab(QWidget):
         # PDF display area
         self.page_display = QLabel("No PDF loaded")
         self.page_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.page_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.page_display.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.main_layout.addWidget(self.page_display)
 
         # Navigation buttons
@@ -33,6 +33,12 @@ class PrintSkidTagsTab(QWidget):
         self.page_label = QLabel("Page 0 of 0")
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.next_button = QPushButton("Next")
+
+        self.back_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.next_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        self.back_button.setMinimumHeight(30)
+        self.next_button.setMinimumHeight(30)
 
         self.back_button.clicked.connect(self.previous_page)
         self.next_button.clicked.connect(self.next_page)
@@ -43,9 +49,10 @@ class PrintSkidTagsTab(QWidget):
 
         # Print button
         self.print_button = QPushButton("Print Skid Tags")
+        self.print_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.print_button.setMinimumHeight(30)
         self.print_button.clicked.connect(self.print_pdf)
-        # self.main_layout.addWidget(self.print_button)
-        
+
         # Wrap navigation and print buttons in a container layout
         self.container_layout = QVBoxLayout()
         self.container_layout.addLayout(self.navigation_layout)
@@ -53,6 +60,9 @@ class PrintSkidTagsTab(QWidget):
 
         # Add the container layout to the main layout
         self.main_layout.addLayout(self.container_layout)
+
+        # Add stretch to ensure buttons stay visible
+        self.main_layout.addStretch()
 
     def load_pdf(self, pdf_path):
         """Load the PDF file."""
@@ -90,50 +100,31 @@ class PrintSkidTagsTab(QWidget):
             image = QImage(pixmap.samples, pixmap.width, pixmap.height, pixmap.stride, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
-            # scaled_pixmap = pixmap.scaled(
-            #     self.page_display.size(),
-            #     Qt.KeepAspectRatio,
-            #     Qt.SmoothTransformation
-            # )
-            # # Get the available size for the widget
-            # available_size = self.page_display.size()
-
-            # # Scale the pixmap to fit within the available size
-            # scaled_pixmap = pixmap.scaled(
-            #     available_size,
-            #     # Qt.KeepAspectRatio,
-            #     # Qt.SmoothTransformation
-            #     Qt.AspectRatioMode.KeepAspectRatio,
-            #     Qt.TransformationMode.SmoothTransformation
-            # )
+            # Get the available size for the QLabel
+            available_size = self.page_display.size()
 
             # Scale the pixmap to fit the QLabel's size, maintaining aspect ratio
-            available_size = self.page_display.size()
             scaled_pixmap = pixmap.scaled(
                 available_size.width(),
                 available_size.height(),
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
-        )
+            )
 
             # Set the scaled pixmap to the QLabel
             self.page_display.setPixmap(scaled_pixmap)
 
-
-            # self.page_display.setPixmap(scaled_pixmap)
+            # Update page navigation
             self.page_label.setText(f"Page {self.current_page_index + 1} of {self.total_pages}")
             self.back_button.setEnabled(self.current_page_index > 0)
             self.next_button.setEnabled(self.current_page_index < self.total_pages - 1)
         except Exception as e:
             self.show_error(f"Error displaying page: {e}")
 
-
     def resizeEvent(self, event):
         """Re-render the current page on window resize."""
         self.update_page()
         super().resizeEvent(event)
-
-
 
     def next_page(self):
         """Go to the next page."""
@@ -154,8 +145,6 @@ class PrintSkidTagsTab(QWidget):
             return
 
         try:
-            # os.system(f"lp \"{self.pdf_path}\"")  # Print command for UNIX-like systems
-            # print("Print job submitted successfully.")
             if platform.system() == "Windows":
                 os.startfile(self.pdf_path, "print")  # Windows-specific print command
             elif platform.system() == "Darwin":  # macOS
@@ -169,8 +158,3 @@ class PrintSkidTagsTab(QWidget):
         """Display an error message."""
         print(message)
         self.page_display.setText(message)
-
-    def resizeEvent(self, event):
-        """Re-render the current page on window resize."""
-        self.update_page()
-        super().resizeEvent(event)
