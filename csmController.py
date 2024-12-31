@@ -5,6 +5,7 @@ from datetime import datetime
 import zipfile
 from tabulate import tabulate
 import platform
+from openpyxl import load_workbook
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog
 import webbrowser
 
@@ -438,6 +439,24 @@ class CSMTab(QWidget):
             if file_path:
                 try:
                     self.df_filtered.to_excel(file_path, index=False)
+
+                     # Adjust column widths using openpyxl
+                    workbook = load_workbook(file_path)
+                    sheet = workbook.active
+
+                    for column_cells in sheet.columns:
+                        max_length = 0
+                        column_letter = column_cells[0].column_letter  # Get the column letter (e.g., "A")
+                        for cell in column_cells:
+                            try:
+                                if cell.value:  # Check if the cell has a value
+                                    max_length = max(max_length, len(str(cell.value)))
+                            except Exception as e:
+                                print(f"Error calculating column width: {e}")
+                        adjusted_width = max_length + 2  # Add padding
+                        sheet.column_dimensions[column_letter].width = adjusted_width
+
+                    workbook.save(file_path)
 
                     # # Open default email client with the file attached
                     # subject = "CSM Report"
