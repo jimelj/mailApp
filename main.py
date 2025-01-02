@@ -2,6 +2,7 @@ import sys
 import os
 import platform 
 import shutil
+from datetime import datetime 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
 from PySide6.QtGui import QGuiApplication
@@ -71,6 +72,20 @@ class MainTab(QWidget):
     #     else:
     #         print(f"No directory to clean: {extracted_directory}")
 
+    # Date Display Label (initially hidden)
+    # Add date label for top-right display
+        self.date_label = QLabel(parent=self)  # Use the parent main window
+        self.date_label.setStyleSheet("color: green; font-size: 36px; font-weight: bold;")
+        self.date_label.setAlignment(Qt.AlignRight)
+        self.date_label.hide()  # Hide initially
+
+    def resizeEvent(self, event):
+        """Reposition the date label on window resize."""
+        super().resizeEvent(event)
+        # Position date label at the top-right corner
+        self.date_label.move(self.width() - self.date_label.width() - 20, 10)
+
+
     def upload_zip(self):
         # self.clean_up_directories()
         """Handle ZIP file upload and processing."""
@@ -91,6 +106,16 @@ class MainTab(QWidget):
                 # Parse the ZIP file and update the CSM tab
                 df_filtered = parse_zip_and_prepare_data(zip_file_path)
                 self.csm_tab.update_data(df_filtered)
+
+                # Extract the date from the data or filename
+                date_from_file = self.extract_date_from_file(zip_file_path)
+
+               
+                # Update and show the date label
+                self.date_label.setText(f"IHD: {date_from_file}")
+                self.date_label.adjustSize()  # Adjust size for text
+                self.date_label.show()  # Show the date label
+                self.resizeEvent(None)  # Reposition the label after updating
 
                 self.feedback_label.setText("File uploaded and data processed successfully!")
                 self.feedback_label.setStyleSheet("color: green;")
@@ -120,7 +145,16 @@ class MainTab(QWidget):
                 self.feedback_label.setText(f"Error processing ZIP file: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
 
-
+    def extract_date_from_file(self, file_path):
+        """Extract the date from the file name in MM-DD-YY format."""
+        try:
+            # Extracting date part (assuming format: 'MailDate MM-DD-YY_...')
+            file_name = os.path.basename(file_path)
+            date_part = file_name.split(" ")[1].split("_")[0]  # Get '12-13-24'
+            file_date = datetime.strptime(date_part, "%m-%d-%y").strftime("%B %d, %Y")
+            return file_date
+        except Exception:
+            return "Unknown Date"
 class MainApp(QMainWindow):
     """Main application window with tabbed navigation."""
 
