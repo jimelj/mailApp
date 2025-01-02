@@ -85,7 +85,7 @@ class MainTab(QWidget):
         else:  # For Linux or other OS
             default_folder = "~/"
 
-        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", default_folder, "ZIP Files (*.zip)")
+        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", "",default_folder, "ZIP Files (*.zip)")
         if zip_file_path:
             try:
                 # Parse the ZIP file and update the CSM tab
