@@ -61,7 +61,17 @@ class MainTab(QWidget):
         self.feedback_label = QLabel("")
         self.layout.addWidget(self.feedback_label)
 
+    # def clean_up_directories(self):
+    #     """Delete all contents inside the 'data/extracted' directory."""
+    #     extracted_directory = "data/extracted"
+    #     if os.path.exists(extracted_directory):
+    #         shutil.rmtree(extracted_directory)
+    #         print(f"Cleaned up directory: {extracted_directory}")
+    #     else:
+    #         print(f"No directory to clean: {extracted_directory}")
+
     def upload_zip(self):
+        # self.clean_up_directories()
         """Handle ZIP file upload and processing."""
         zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", "", "ZIP Files (*.zip)")
         if zip_file_path:

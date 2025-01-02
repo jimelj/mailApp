@@ -100,6 +100,8 @@ class PrintSkidTagsTab(QWidget):
 
             print(f"PDF loaded successfully: {pdf_path}, Total Pages: {self.total_pages}")
             self.update_page()
+            print('JJJ')
+            print(pdf_path)
         except Exception as e:
             self.doc = None
             self.total_pages = 0
@@ -171,6 +173,7 @@ class PrintSkidTagsTab(QWidget):
 
         try:
             if self.current_os == "Windows":
+                print(self.pdf_path)
                 os.startfile(self.pdf_path, "print")
             elif self.current_os == "Darwin":
                 os.system(f"open -a Preview \"{self.pdf_path}\"")
