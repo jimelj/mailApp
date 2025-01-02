@@ -81,11 +81,11 @@ class MainTab(QWidget):
         if current_os == "Windows":
             default_folder = "C:\\cbahqdist-ts\\DIST_L_JCTS\\UMS Presort"
         elif current_os == "Darwin":  # macOS
-            default_folder = "~/Documents"
+            default_folder = os.path.expanduser("~/Documents") 
         else:  # For Linux or other OS
-            default_folder = "~/"
+            default_folder = os.path.expanduser("~/") 
 
-        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", "",default_folder, "ZIP Files (*.zip)")
+        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File",default_folder, "ZIP Files (*.zip)")
         if zip_file_path:
             try:
                 # Parse the ZIP file and update the CSM tab
