@@ -79,7 +79,7 @@ class MainTab(QWidget):
 
         # Define the default folder based on the OS
         if current_os == "Windows":
-            default_folder = "C:\\cbahqdist-ts\\DIST_L_JCTS\\UMS Presort"
+            default_folder = r"\\cbahqdist-ts\DIST_L_JCTS\UMS Presort\in\hold"
         elif current_os == "Darwin":  # macOS
             default_folder = os.path.expanduser("~/Documents") 
         else:  # For Linux or other OS
