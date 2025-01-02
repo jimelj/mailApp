@@ -1,5 +1,6 @@
 import sys
 import os
+import platform 
 import shutil
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
@@ -73,7 +74,18 @@ class MainTab(QWidget):
     def upload_zip(self):
         # self.clean_up_directories()
         """Handle ZIP file upload and processing."""
-        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", "", "ZIP Files (*.zip)")
+        # Dynamically determine the OS
+        current_os = platform.system()
+
+        # Define the default folder based on the OS
+        if current_os == "Windows":
+            default_folder = "C:\\cbahqdist-ts\\DIST_L_JCTS\\UMS Presort"
+        elif current_os == "Darwin":  # macOS
+            default_folder = "~/Documents"
+        else:  # For Linux or other OS
+            default_folder = "~/"
+
+        zip_file_path, _ = QFileDialog.getOpenFileName(self, "Select ZIP File", default_folder, "ZIP Files (*.zip)")
         if zip_file_path:
             try:
                 # Parse the ZIP file and update the CSM tab
