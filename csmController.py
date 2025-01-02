@@ -459,6 +459,8 @@ class CSMTab(QWidget):
                         sheet.column_dimensions[column_letter].width = adjusted_width
 
                     workbook.save(file_path)
+                    print('filepath')
+                    print(file_path)
 
                     # # Open default email client with the file attached
                     # subject = "CSM Report"
@@ -475,7 +477,7 @@ class CSMTab(QWidget):
                         mail = outlook.CreateItem(0)
 
                         # Set the recipient, subject, and body
-                        mail.To = "jjoseph@cbaol.com"
+                        mail.To = "jjoseph@cbaol.com; deasterwood@cbaol.com;"
                         mail.Subject = "CSM Report"
                         mail.Body = "Attached is the CSM Report."
 
