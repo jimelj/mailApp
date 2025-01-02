@@ -173,14 +173,35 @@ class PrintSkidTagsTab(QWidget):
 
         try:
             if self.current_os == "Windows":
-                print(self.pdf_path)
-                os.startfile(self.pdf_path, "print")
+                # Debugging: Verify the PDF path is correct and accessible
+                if not os.path.exists(self.pdf_path):
+                    self.show_error(f"File not found: {self.pdf_path}")
+                    return
+                
+                # Ensure the PDF path uses raw strings or proper formatting
+                pdf_path_fixed = os.path.abspath(self.pdf_path)
+                print(f"Attempting to print: {pdf_path_fixed}")
+                
+                # Attempt to print the PDF
+                os.startfile(pdf_path_fixed, "print")
             elif self.current_os == "Darwin":
+                # macOS: Use Preview for printing
                 os.system(f"open -a Preview \"{self.pdf_path}\"")
             else:
-                print("Unsupported platform for printing.")
+                self.show_error("Unsupported platform for printing.")
+        except FileNotFoundError:
+            self.show_error(f"File not found: {self.pdf_path}")
+        except OSError as e:
+            # More informative error handling for WinError 1155
+            if e.winerror == 1155:
+                self.show_error(
+                    "No application is associated with PDF files for this operation. "
+                    "Please install a PDF viewer and set it as default."
+                )
+            else:
+                self.show_error(f"Failed to print PDF: {e}")
         except Exception as e:
-            self.show_error(f"Failed to print PDF: {e}")
+            self.show_error(f"Unexpected error occurred: {e}")
 
     def show_error(self, message):
         """Display an error message."""
