@@ -8,6 +8,8 @@ import platform
 from openpyxl import load_workbook
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog
 import webbrowser
+import win32com.client
+
 
 
 def parse_zip_and_prepare_data(zip_file_path):
@@ -466,7 +468,22 @@ class CSMTab(QWidget):
                     # webbrowser.open(email_uri)
                                 # Create the email command
                     if platform.system() == "Windows":
-                        os.startfile(f"mailto:?subject=CSM Report&body=Attached is the CSM Report.&attachment={file_path}")
+                        # Create an Outlook application object
+                        outlook = win32com.client.Dispatch("Outlook.Application")
+
+                        # Create a new mail item
+                        mail = outlook.CreateItem(0)
+
+                        # Set the recipient, subject, and body
+                        mail.To = "jjoseph@cbaol.com"
+                        mail.Subject = "CSM Report"
+                        mail.Body = "Attached is the CSM Report."
+
+                        # Attach a file
+                        mail.Attachments.Add(file_path)
+
+                        # Send the email
+                        mail.Send()
                     elif platform.system() == "Darwin":  # macOS
                         os.system(f"open 'mailto:?subject=CSM Report&body=Attached is the CSM Report&attachment={file_path}'")
                     else:  # Linux (may vary based on desktop environment)
