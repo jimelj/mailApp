@@ -6,9 +6,12 @@ import zipfile
 from tabulate import tabulate
 import platform
 from openpyxl import load_workbook
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog, QHBoxLayout
 import webbrowser
-import win32com.client
+from util import upload_to_ftps
+from dotenv import load_dotenv
+# import win32com.client
+
 
 
 
@@ -345,9 +348,17 @@ class CSMTab(QWidget):
         self.table = QTableWidget()
         self.layout.addWidget(self.table)
 
+        # Create a horizontal layout for the buttons
+        button_layout = QHBoxLayout()
+
         # "Email Report" button
-        self.email_button = QPushButton("Email Report")
+        self.email_button = QPushButton("Email CMS Report")
         self.email_button.clicked.connect(self.email_report)  # Connect button to functionality
+
+        # "Capstone" button
+        self.capstone_button = QPushButton("Capstone Report")
+        self.capstone_button.clicked.connect(self.generate_capstone_report)
+
 
         # Button Styling
         button_style = """
@@ -369,8 +380,14 @@ class CSMTab(QWidget):
             }
         """
         self.email_button.setStyleSheet(button_style)
+        self.capstone_button.setStyleSheet(button_style)
+        # Add buttons to the horizontal layout
+        button_layout.addWidget(self.email_button)
+        button_layout.addWidget(self.capstone_button)
 
-        self.layout.addWidget(self.email_button)
+        # Add button layout to the main vertical layout
+        self.layout.addLayout(button_layout)
+        
 
         self.update_table()
 
@@ -492,3 +509,105 @@ class CSMTab(QWidget):
                         webbrowser.open(f"mailto:?subject=CSM Report&body=Attached is the CSM Report&attachment={file_path}")
                 except Exception as e:
                     print(f"Error creating or sending the report: {e}")
+    
+    def generate_capstone_report(self):
+        """Generate the Capstone Excel report with specified fields."""
+        load_dotenv()
+        if self.df_filtered.empty:
+            print("No data available to generate the Capstone report.")
+            return
+
+        try:
+            # Split the Address column
+            self.df_filtered[["Destination Address", "Destination City", "Destination State", "Destination Zip"]] = (
+                self.df_filtered["Address"]
+                .str.extract(r"^(.*?),\s*(.*?),\s*([A-Z]{2}),\s*(\d{5})$")
+        )
+            # Create the Capstone data structure with placeholders
+            capstone_data = {
+                "Customer Number*": ["11769"] * len(self.df_filtered), 
+                "Billing Group": "",
+                "Origin Name*": ["CBA Industries"] * len(self.df_filtered),
+                "Origin Address*": ["160 Raritan Center Parkway"]* len(self.df_filtered),
+                "Origin Suite": ["Suite 19"] * len(self.df_filtered), 
+                "Origin City*": ["Edison"] * len(self.df_filtered), 
+                "Origin State*": ["NJ"] * len(self.df_filtered), 
+                "Origin Zip*": ["08837"] * len(self.df_filtered),
+                "Origin Plus 4": "", 
+                "Origin Phone": ["404-579-4090"] * len(self.df_filtered),  # Placeholder
+                "Origin Remarks": ["Contact Darrell Easterwood"] * len(self.df_filtered),  # Placeholder
+                "Destination Name*": self.df_filtered["Label: Destination Line 1"],  # Placeholder
+                "Destination Address*": self.df_filtered["Destination Address"],
+                "Destination Suite": "",
+                "Destination City*": self.df_filtered["Destination City"],  # Placeholder
+                "Destination State*": self.df_filtered["Destination State"],  # Placeholder
+                "Destination Zip*": self.df_filtered["Destination Zip"],
+                "Destination Plus 4": "",  # Placeholder
+                "Destination Phone": "",
+                "Destination Remarks": "",
+                "Email Address": ["deasterwood@cbaol.com"] * len(self.df_filtered),
+                "Send Confirmation Email": "",
+                "Send POP Email": "",
+                "Send POD Email": "",
+                "Reference 1": self.df_filtered["Job ID"],
+                "Reference 2": self.df_filtered["Display Container ID"],
+                "Order Type*": "",  # Placeholder
+                "Pieces": self.df_filtered["Number of Pieces"],
+                "Weight": self.df_filtered["Total Weight"],
+                "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"],
+                "Driver ID": "",
+                "Order Comments": "",
+                "Parcel Barcode": self.df_filtered["Label: IM™ Container - Final"],
+                "Parcel Pieces": "",
+                "Parcel Length": "",
+                "Parcel Width": "",
+                "Parcel Height": "",
+                "Parcel Weight": "",
+            }
+
+            # Convert to DataFrame
+            capstone_df = pd.DataFrame(capstone_data)
+
+            # Save the Capstone report to an Excel file
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", "Capstone_Report.xlsx", "Excel Files (*.xlsx)")
+            if file_path:
+                capstone_df.to_excel(file_path, index=False)
+
+                # Adjust column widths using openpyxl
+                workbook = load_workbook(file_path)
+                sheet = workbook.active
+
+                for column_cells in sheet.columns:
+                    max_length = 0
+                    column_letter = column_cells[0].column_letter  # Get the column letter (e.g., "A")
+                    for cell in column_cells:
+                        try:
+                            if cell.value:  # Check if the cell has a value
+                                max_length = max(max_length, len(str(cell.value)))
+                        except Exception as e:
+                            print(f"Error calculating column width: {e}")
+                    adjusted_width = max_length + 2  # Add padding
+                    sheet.column_dimensions[column_letter].width = adjusted_width
+
+                workbook.save(file_path)
+                print(f"Capstone report saved to {file_path}")
+
+                # host = str(os.getenv("HOSTNAME"))
+                # username = str(os.getenv("USERNAME"))
+                # password = str(os.getenv("FTP_SECRET"))
+                # port = int(os.getenv("PORT"))
+                # remote_dir = "/Capstone"
+
+                
+                host = os.getenv("HOSTNAME")
+                username = os.getenv("USERNAME")
+                password = os.getenv("FTP_SECRET")
+                remote_dir = "/Capstone"
+
+                result = upload_to_ftps(file_path, host, username, password, remote_dir)
+                print(result)
+               
+                    
+
+        except Exception as e:
+            print(f"Error creating Capstone report: {e}")

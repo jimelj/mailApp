@@ -11,11 +11,11 @@ from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab f
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
 import stat
-import psutil  # For checking and closing open file handles
+# import psutil  # For checking and closing open file handles
 from time import sleep
 import fitz
-import win32file
-import win32con
+# import win32file
+# import win32con
 
 # Set high DPI scaling policy
 QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
