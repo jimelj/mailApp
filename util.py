@@ -1,40 +1,64 @@
 import pycurl
 from io import BytesIO
+import os
 
 def upload_to_ftps(file_path, host, username, password, remote_dir="/", port=990):
     """
-    Upload a file to an FTPS server using pycurl.
+    Uploads a file to an FTPS server with progress feedback.
 
-    Parameters:
-    - file_path (str): Local path to the file to upload.
-    - host (str): FTPS server hostname.
-    - username (str): FTPS username.
-    - password (str): FTPS password.
-    - remote_dir (str): Remote directory path.
-    - port (int): Port number (default: 990).
+    Args:
+        file_path (str): Path to the file to upload.
+        host (str): FTPS server hostname.
+        username (str): FTPS username.
+        password (str): FTPS password.
+        remote_dir (str): Directory on the server where the file will be uploaded.
+        port (int): FTPS port number (default: 990).
     """
     try:
-        file_name = file_path.split("/")[-1]
-        ftps_url = f"ftps://{host}:{port}{remote_dir}/{file_name}"
-        print(f"Uploading to: {ftps_url}")
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
 
-        with open(file_path, "rb") as f:
-            c = pycurl.Curl()
-            c.setopt(c.URL, ftps_url)
-            c.setopt(c.USERPWD, f"{username}:{password}")
-            c.setopt(c.UPLOAD, 1)
-            c.setopt(c.READFUNCTION, f.read)
-            c.setopt(c.SSL_VERIFYHOST, 0)  # Disable SSL hostname verification
-            c.setopt(c.SSL_VERIFYPEER, 0)  # Disable SSL peer verification
-            c.perform()
-            c.close()
+        file_size = os.path.getsize(file_path)
 
-        print("FTPS upload successful.")
-        return "File uploaded successfully."
+        def progress(download_total, downloaded, upload_total, uploaded):
+            if upload_total > 0:  # Avoid division by zero
+                percent_complete = int((uploaded / upload_total) * 100)
+                print(f"Uploading... {percent_complete}% ({uploaded}/{upload_total} bytes)", end="\r")
 
-    except pycurl.error as e:
-        print(f"FTPS upload failed: {e}")
+        # Prepare the cURL handle
+        c = pycurl.Curl()
+        c.setopt(c.URL, f"ftps://{host}:{port}{remote_dir}/{os.path.basename(file_path)}")
+        c.setopt(c.USERPWD, f"{username}:{password}")
+        c.setopt(c.UPLOAD, 1)
+        c.setopt(c.SSL_VERIFYPEER, 0)
+        c.setopt(c.SSL_VERIFYHOST, 0)
+        c.setopt(c.READFUNCTION, open(file_path, "rb").read)
+        c.setopt(c.INFILESIZE, file_size)
+        c.setopt(c.NOPROGRESS, 0)  # Enable progress meter
+        c.setopt(c.XFERINFOFUNCTION, progress)  # Progress callback
+
+        # Capture the response
+        response_buffer = BytesIO()
+        c.setopt(c.WRITEDATA, response_buffer)
+
+        print(f"Starting upload to {host}:{port}{remote_dir}...")
+        c.perform()  # Perform the upload
+
+        # Get the response code before closing the handle
+        response_code = c.getinfo(c.RESPONSE_CODE)
+        c.close()
+
+        # Check the response
+        if response_code == 226:  # 226 indicates successful upload
+            print("\nFile uploaded successfully.")
+            return "File uploaded successfully."
+        else:
+            raise Exception(f"Upload failed with response code: {response_code}")
+
+    except Exception as e:
+        print(f"\nError during FTPS upload: {e}")
         return f"FTPS upload failed: {e}"
+
 
 #         # import paramiko
 
