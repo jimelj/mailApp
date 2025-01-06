@@ -563,8 +563,8 @@ class CSMTab(QWidget):
                 "Reference 2": self.df_filtered["Display Container ID"],
                 "Order Type*": "",  # Placeholder
                 "Pieces": self.df_filtered["Number of Pieces"],
-                "Weight": self.df_filtered["Total Weight"],
-                "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"],
+                "Weight": self.df_filtered["Total Weight"].str.replace(" LBS", "", regex=False),
+                "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"] + " 3:00 AM",
                 "Driver ID": "",
                 "Order Comments": "",
                 "Parcel Barcode": self.df_filtered["Label: IM™ Container - Final"],
