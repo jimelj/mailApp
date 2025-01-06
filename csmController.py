@@ -614,13 +614,23 @@ class CSMTab(QWidget):
 
                 
                 host = os.getenv("HOSTNAME")
-                username = os.getenv("USERNAME")
+                username = os.getenv("FTP_USERNAME")
                 password = os.getenv("FTP_SECRET")
                 remote_dir = os.getenv("REMOTEDIR")
-                port=os.getenv("PORT")
+                port= int(os.getenv("PORT", 990))
+
+                print('Rocket Fuel')
+                print(username)
 
                 result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
+            #     result = upload_to_ftps(file_path, 
+            #    "cba.sharefileftp.com", 
+            #    "cba/jjoseph@cbaol.com", 
+            #    "JimelJoseph@15951", 
+            #    "/Capstone", 
+            #    990)
                 print(result)
+
                
                     
 

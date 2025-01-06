@@ -5,6 +5,8 @@ from urllib.parse import quote
 
 
 def upload_to_ftps(file_path, host, username, password, remote_dir, port):
+    # port = int(port)
+    print(file_path)
     """
     Uploads a file to an FTPS server with progress feedback.
 
@@ -23,6 +25,9 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         
         # Encode the file name to handle special characters
         remote_file_name = quote(os.path.basename(file_path))
+        # Encode the password for safe transmission
+        file_path = os.path.normpath(file_path)
+
 
         file_size = os.path.getsize(file_path)
 
@@ -31,9 +36,13 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
                 percent_complete = int((uploaded / upload_total) * 100)
                 print(f"Uploading... {percent_complete}% ({uploaded}/{upload_total} bytes)", end="\r")
 
+        # Construct the FTPS URL
+        ftps_url = f"ftps://{host}:{port}{remote_dir}/{remote_file_name}"
+        print(f"FTPS URL: {ftps_url}")        
+
         # Prepare the cURL handle
         c = pycurl.Curl()
-        c.setopt(c.URL, f"ftps://{host}:{port}{remote_dir}/{remote_file_name}")
+        c.setopt(c.URL, ftps_url)
         c.setopt(c.USERPWD, f"{username}:{password}")
         c.setopt(c.UPLOAD, 1)
         c.setopt(c.SSL_VERIFYPEER, 0)
@@ -42,6 +51,9 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         c.setopt(c.INFILESIZE, file_size)
         c.setopt(c.NOPROGRESS, 0)  # Enable progress meter
         c.setopt(c.XFERINFOFUNCTION, progress)  # Progress callback
+        # Explicit FTPS
+        c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)
+        c.setopt(c.VERBOSE, True)
 
         # Capture the response
         response_buffer = BytesIO()
