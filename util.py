@@ -1,6 +1,8 @@
 import pycurl
 from io import BytesIO
 import os
+from urllib.parse import quote
+
 
 def upload_to_ftps(file_path, host, username, password, remote_dir, port):
     """
@@ -15,8 +17,12 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         port (int): FTPS port number (default: 990).
     """
     try:
+        # Validate file existence
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
+        
+        # Encode the file name to handle special characters
+        remote_file_name = quote(os.path.basename(file_path))
 
         file_size = os.path.getsize(file_path)
 
@@ -27,7 +33,7 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 
         # Prepare the cURL handle
         c = pycurl.Curl()
-        c.setopt(c.URL, f"ftps://{host}:{port}{remote_dir}/{os.path.basename(file_path)}")
+        c.setopt(c.URL, f"ftps://{host}:{port}{remote_dir}/{remote_file_name}")
         c.setopt(c.USERPWD, f"{username}:{password}")
         c.setopt(c.UPLOAD, 1)
         c.setopt(c.SSL_VERIFYPEER, 0)
@@ -97,3 +103,32 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 
 #     except Exception as e:
 #         print(f"Error uploading file to SFTP: {e}")
+
+# def process_zip_name(zip_name):
+#     """
+#     Extracts the relevant part of the ZIP file name by removing 'MailDate'.
+    
+#     Args:
+#         zip_name (str): The name of the uploaded ZIP file.
+
+#     Returns:
+#         str: The processed file name without 'MailDate'.
+#     """
+#     if zip_name.startswith("MailDate " or "maildate "):
+#         return zip_name.replace("MailDate ", "", 1).strip()
+#     return zip_name.strip()
+
+def process_zip_name(zip_name):
+    """
+    Extracts the relevant part of the ZIP file name by removing 'MailDate' (case-insensitive).
+
+    Args:
+        zip_name (str): The name of the uploaded ZIP file.
+
+    Returns:
+        str: The processed file name without 'MailDate'.
+    """
+    # Normalize to lowercase for case-insensitive comparison
+    if zip_name.lower().startswith("maildate "):
+        return zip_name[9:].strip()  # Remove 'MailDate ' (9 characters)
+    return zip_name.strip()

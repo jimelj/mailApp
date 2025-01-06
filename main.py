@@ -10,6 +10,9 @@ import pandas as pd
 from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
+from util import process_zip_name
+
+
 import stat
 # import psutil  # For checking and closing open file handles
 from time import sleep
@@ -97,6 +100,13 @@ class MainTab(QWidget):
         """Handle ZIP file upload and processing."""
         # Dynamically determine the OS
         current_os = platform.system()
+            # Process the ZIP name
+        
+        # processed_zip_name = process_zip_name(self)
+        # print(f"Processed ZIP Name: {processed_zip_name}")
+    
+        # # Pass the processed ZIP name to save_reports
+        # save_reports(processed_zip_name)
 
         # Define the default folder based on the OS
         if current_os == "Windows":
@@ -111,10 +121,17 @@ class MainTab(QWidget):
             try:
                 # Parse the ZIP file and update the CSM tab
                 df_filtered = parse_zip_and_prepare_data(zip_file_path)
-                self.csm_tab.update_data(df_filtered)
 
+                self.csm_tab.update_data(df_filtered)
                 # Extract the date from the data or filename
                 date_from_file = self.extract_date_from_file(zip_file_path)
+                # Extract the base name and remove the '.zip' extension
+                zip_base_name = os.path.basename(zip_file_path).replace('.zip', '')
+                # Process the ZIP name
+                processed_zip_name = process_zip_name(zip_base_name)
+                print(f"Processed ZIP Name: {processed_zip_name}")
+                # Pass the processed ZIP name to the CSMTab instance
+                self.csm_tab.set_processed_zip_name(processed_zip_name)
 
                
                 # Update and show the date label

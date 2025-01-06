@@ -343,6 +343,7 @@ class CSMTab(QWidget):
     def __init__(self, df_filtered):
         super().__init__()
         self.df_filtered = df_filtered
+        self.processed_zip_name = None
         self.layout = QVBoxLayout(self)
 
         self.table = QTableWidget()
@@ -390,6 +391,14 @@ class CSMTab(QWidget):
         
 
         self.update_table()
+    
+    def set_processed_zip_name(self, processed_zip_name):
+        """
+        Set the processed ZIP name to be used later.
+        """
+        self.processed_zip_name = processed_zip_name
+        print(f"Processed ZIP Name set in CSMTab: {self.processed_zip_name}")
+
 
     def update_data(self, df_filtered):
         """Updates the tab with new data."""
@@ -454,7 +463,8 @@ class CSMTab(QWidget):
                 return
 
             # Save the filtered DataFrame to an Excel file
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", "CSM_Report.xlsx", "Excel Files (*.xlsx)")
+            csm_report_name = f"CSM_Report {self.processed_zip_name}.xlsx"
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", csm_report_name, "Excel Files (*.xlsx)")
             if file_path:
                 try:
                     self.df_filtered.to_excel(file_path, index=False)
@@ -568,29 +578,30 @@ class CSMTab(QWidget):
             # Convert to DataFrame
             capstone_df = pd.DataFrame(capstone_data)
 
-            # Save the Capstone report to an Excel file
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", "Capstone_Report.xlsx", "Excel Files (*.xlsx)")
+            # Save the Capstone report to a CSV file
+            capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", capstone_report_name, "CSV Files (*.csv)")
             if file_path:
-                capstone_df.to_excel(file_path, index=False)
+                capstone_df.to_csv(file_path, index=False)
 
-                # Adjust column widths using openpyxl
-                workbook = load_workbook(file_path)
-                sheet = workbook.active
+                # # Adjust column widths using openpyxl
+                # workbook = load_workbook(file_path)
+                # sheet = workbook.active
 
-                for column_cells in sheet.columns:
-                    max_length = 0
-                    column_letter = column_cells[0].column_letter  # Get the column letter (e.g., "A")
-                    for cell in column_cells:
-                        try:
-                            if cell.value:  # Check if the cell has a value
-                                max_length = max(max_length, len(str(cell.value)))
-                        except Exception as e:
-                            print(f"Error calculating column width: {e}")
-                    adjusted_width = max_length + 2  # Add padding
-                    sheet.column_dimensions[column_letter].width = adjusted_width
+                # for column_cells in sheet.columns:
+                #     max_length = 0
+                #     column_letter = column_cells[0].column_letter  # Get the column letter (e.g., "A")
+                #     for cell in column_cells:
+                #         try:
+                #             if cell.value:  # Check if the cell has a value
+                #                 max_length = max(max_length, len(str(cell.value)))
+                #         except Exception as e:
+                #             print(f"Error calculating column width: {e}")
+                #     adjusted_width = max_length + 2  # Add padding
+                #     sheet.column_dimensions[column_letter].width = adjusted_width
 
-                workbook.save(file_path)
-                print(f"Capstone report saved to {file_path}")
+                # workbook.save(file_path)
+                # print(f"Capstone report saved to {file_path}")
 
                 # host = str(os.getenv("HOSTNAME"))
                 # username = str(os.getenv("USERNAME"))
