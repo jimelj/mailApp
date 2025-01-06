@@ -10,7 +10,10 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetIt
 import webbrowser
 from util import upload_to_ftps
 from dotenv import load_dotenv
-# import win32com.client
+# Conditional import for Windows-specific packages
+if platform.system() == "Windows":
+    import win32com.client
+
 
 
 
