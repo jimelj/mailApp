@@ -2,7 +2,7 @@ import pycurl
 from io import BytesIO
 import os
 
-def upload_to_ftps(file_path, host, username, password, remote_dir="/", port=990):
+def upload_to_ftps(file_path, host, username, password, remote_dir, port):
     """
     Uploads a file to an FTPS server with progress feedback.
 

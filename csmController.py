@@ -602,9 +602,10 @@ class CSMTab(QWidget):
                 host = os.getenv("HOSTNAME")
                 username = os.getenv("USERNAME")
                 password = os.getenv("FTP_SECRET")
-                remote_dir = "/Capstone"
+                remote_dir = os.getenv("REMOTEDIR")
+                port=os.getenv("PORT")
 
-                result = upload_to_ftps(file_path, host, username, password, remote_dir)
+                result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
                 print(result)
                
                     
