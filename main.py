@@ -218,25 +218,25 @@ class MainApp(QMainWindow):
 
     
     def clean_up_directories(self):
-        """Delete all contents inside the 'data' directory."""
-        script_directory = Path(__file__).parent
-        data_directory = script_directory / "data"
-        current_os = platform.system()
-        print(data_directory)
-        print(data_directory)       
+            """Delete all contents inside the 'data' directory."""
+            script_directory = Path(__file__).parent
+            data_directory = script_directory / "data"
+            current_os = platform.system()
 
-        if os.path.exists(data_directory):
-            try:
+            print(f"Cleaning up directory: {data_directory}")
+
+            if os.path.exists(data_directory):
+                try:
                     if current_os == "Windows":
                         self.force_clean_up_windows(data_directory)
                     else:
                         self.default_clean_up(data_directory)
-            except Exception as e:
+                except Exception as e:
                     print(f"Error cleaning up directory '{data_directory}': {e}")
-        else:
-            print(f"Directory does not exist: {data_directory}")
+            else:
+                print(f"Directory does not exist: {data_directory}")
 
-    def force_clean_up_windows(self, directory):
+    def force_clean_up_windows(self, data_directory):
         """Forcefully unlock and delete files on Windows."""
         def handle_remove_readonly(func, path, exc_info):
             """Handle read-only file removal."""
@@ -244,17 +244,40 @@ class MainApp(QMainWindow):
             func(path)
 
         try:
-            # Ensure no processes are using the files
-            for root, _, files in os.walk(directory):
+            for root, _, files in os.walk(data_directory):
                 for file in files:
                     file_path = os.path.join(root, file)
+
+                    # Explicitly close PDFs if they are still open
+                    if file.endswith(".pdf"):
+                        self.close_pdf_if_open(file_path)
+
+                    # Forcefully delete the file
                     self.force_delete_file_windows(file_path)
 
-            # Use shutil.rmtree with the custom handler for read-only files
-            shutil.rmtree(directory, onerror=handle_remove_readonly)
-            print(f"Forcefully cleaned up directory (Windows): {directory}")
+            # Remove the directory structure
+            shutil.rmtree(data_directory, onerror=handle_remove_readonly)
+            print(f"Forcefully cleaned up directory (Windows): {data_directory}")
         except Exception as e:
             print(f"Error during Windows cleanup: {e}")
+
+    def close_pdf_if_open(self, file_path):
+        """Close the PDF file if it's open within the application."""
+        try:
+            # Check if skid tags or tray tags PDFs are open
+            if hasattr(self, 'skid_tags_pdf') and self.skid_tags_pdf:
+                if self.skid_tags_pdf.name == file_path:
+                    self.skid_tags_pdf.close()
+                    self.skid_tags_pdf = None
+                    print(f"Closed open PDF: {file_path}")
+
+            if hasattr(self, 'tray_tags_pdf') and self.tray_tags_pdf:
+                if self.tray_tags_pdf.name == file_path:
+                    self.tray_tags_pdf.close()
+                    self.tray_tags_pdf = None
+                    print(f"Closed open PDF: {file_path}")
+        except Exception as e:
+            print(f"Error closing PDF {file_path}: {e}")
 
     def force_delete_file_windows(self, file_path):
         """Unlock and delete a file on Windows."""
