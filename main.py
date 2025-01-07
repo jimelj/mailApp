@@ -221,11 +221,56 @@ class MainApp(QMainWindow):
         """Delete all contents inside the 'data' directory."""
         script_directory = Path(__file__).parent
         data_directory = script_directory / "data"
+        current_os = platform.system()
         print(data_directory)
         print(data_directory)       
 
         if os.path.exists(data_directory):
             try:
+                    if current_os == "Windows":
+                        self.force_clean_up_windows(data_directory)
+                    else:
+                        self.default_clean_up(data_directory)
+            except Exception as e:
+                    print(f"Error cleaning up directory '{data_directory}': {e}")
+        else:
+            print(f"Directory does not exist: {data_directory}")
+
+    def force_clean_up_windows(self, directory):
+        """Forcefully unlock and delete files on Windows."""
+        def handle_remove_readonly(func, path, exc_info):
+            """Handle read-only file removal."""
+            os.chmod(path, stat.S_IWRITE)  # Change to writable
+            func(path)
+
+        try:
+            # Ensure no processes are using the files
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    self.force_delete_file_windows(file_path)
+
+            # Use shutil.rmtree with the custom handler for read-only files
+            shutil.rmtree(directory, onerror=handle_remove_readonly)
+            print(f"Forcefully cleaned up directory (Windows): {directory}")
+        except Exception as e:
+            print(f"Error during Windows cleanup: {e}")
+
+    def force_delete_file_windows(self, file_path):
+        """Unlock and delete a file on Windows."""
+        try:
+            import win32api
+            import win32con
+
+            # Unlock file if on Windows
+            win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_NORMAL)
+            os.remove(file_path)
+            print(f"Forcefully deleted file: {file_path}")
+        except Exception as e:
+            print(f"Error forcefully deleting file {file_path}: {e}")
+
+    def default_clean_up(self, data_directory):
+        try:
                 # Loop through the contents of the directory
                 for item in os.listdir(data_directory):
                     item_path = os.path.join(data_directory, item)
@@ -237,13 +282,15 @@ class MainApp(QMainWindow):
                         shutil.rmtree(item_path)  # Remove directory
 
                 print(f"Cleaned up directory: {data_directory}")
-            except Exception as e:
-                print(f"Error cleaning up directory '{data_directory}': {e}")
-        else:
-            print(f"Directory does not exist: {data_directory}")
-
+        except Exception as e:
+            print(f"Error cleaning up directory '{data_directory}': {e}")
+  
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_window = MainApp()
     main_window.show()
     sys.exit(app.exec())
+
+
+  
