@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetIt
 import webbrowser
 from util import upload_to_ftps
 from dotenv import load_dotenv
+from pathlib import Path
 # Conditional import for Windows-specific packages
 if platform.system() == "Windows":
     import win32com.client
@@ -524,6 +525,8 @@ class CSMTab(QWidget):
                     print(f"Error creating or sending the report: {e}")
     
     def generate_capstone_report(self):
+        script_directory = Path(__file__).parent
+        
         """Generate the Capstone Excel report with specified fields."""
         load_dotenv()
         if self.df_filtered.empty:
@@ -536,6 +539,27 @@ class CSMTab(QWidget):
                 self.df_filtered["Address"]
                 .str.extract(r"^(.*?),\s*(.*?),\s*([A-Z]{2}),\s*(\d{5})$")
         )
+            # Define Order Type mapping
+            order_type_mapping = {
+                "DDU": 9,
+                "SCF": 504,
+        }
+            # Load ZIP data from the external file
+            zips_by_address_path = script_directory / "Zips by Address File Group.xlsx"
+            zips_df = pd.read_excel(zips_by_address_path, sheet_name="Data")
+
+            # Ensure proper data types
+            zips_df["zip"] = zips_df["zip"].astype(str)
+            self.df_filtered["Container Destination Zip"] = self.df_filtered["Container Destination Zip"].astype(str)
+
+            # Merge ZIP data with the filtered DataFrame
+            merged_df = pd.merge(
+                self.df_filtered,
+                zips_df[["zip", "truckload", "ratedesc"]],
+                left_on="Container Destination Zip",
+                right_on="zip",
+                how="left"
+            )
             # Create the Capstone data structure with placeholders
             capstone_data = {
                 "Customer Number*": ["11769"] * len(self.df_filtered), 
@@ -562,9 +586,9 @@ class CSMTab(QWidget):
                 "Send Confirmation Email": "",
                 "Send POP Email": "",
                 "Send POD Email": "",
-                "Reference 1": self.df_filtered["Job ID"],
-                "Reference 2": self.df_filtered["Display Container ID"],
-                "Order Type*": "",  # Placeholder
+                "Reference 1": self.df_filtered["Container Destination Zip"],
+                "Reference 2": merged_df["truckload"],  # Populate with truckload
+                "Order Type*": merged_df["ratedesc"].map(order_type_mapping),  # Populate with ratedesc
                 "Pieces": self.df_filtered["Number of Pieces"],
                 "Weight": self.df_filtered["Total Weight"].str.replace(" LBS", "", regex=False),
                 "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"] + " 3:00 AM",
@@ -578,8 +602,15 @@ class CSMTab(QWidget):
                 "Parcel Weight": "",
             }
 
+
             # Convert to DataFrame
             capstone_df = pd.DataFrame(capstone_data)
+
+            # Adjust Order Type for outlier cases where "Destination Name*" contains "SCF"
+            capstone_df.loc[
+            capstone_df["Destination Name*"].str.contains(r"SCF-MID ISLAND", case=False, na=False),
+            ["Order Type*", "Reference 2"]
+            ] = ["504", "CBAT99"]
 
             # Save the Capstone report to a CSV file
             capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
