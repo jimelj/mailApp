@@ -15,6 +15,7 @@ import stat
 # import psutil  # For checking and closing open file handles
 from time import sleep
 import fitz
+from pathlib import Path
 # Conditional import for Windows-specific packages
 if platform.system() == "Windows":
     import win32file
@@ -215,57 +216,31 @@ class MainApp(QMainWindow):
         self.clean_up_directories()
         event.accept()
 
-    # def clean_up_directories(self):
-    #     """Delete all contents inside the 'data/extracted' directory."""
-    #     extracted_directory = "data/extracted"
-    #     if os.path.exists(extracted_directory):
-    #         shutil.rmtree(extracted_directory)
-    #         print(f"Cleaned up directory: {extracted_directory}")
-    #     else:
-    #         print(f"No directory to clean: {extracted_directory}")
+    
     def clean_up_directories(self):
-        """Delete all contents inside the 'data/extracted' directory."""
-        extracted_directory = "data/extracted"
+        """Delete all contents inside the 'data' directory."""
+        script_directory = Path(__file__).parent
+        data_directory = script_directory / "data"
+        print(data_directory)
+        print(data_directory)       
 
-        def handle_remove_readonly(func, path, exc_info):
-            """Handle read-only file removal."""
+        if os.path.exists(data_directory):
             try:
-                os.chmod(path, stat.S_IWRITE)
-                func(path)
-            except Exception as e:
-                print(f"Failed to remove {path}: {e}")
+                # Loop through the contents of the directory
+                for item in os.listdir(data_directory):
+                    item_path = os.path.join(data_directory, item)
 
-        def unlock_file(file_path):
-            """Forcefully unlock a file."""
-            try:
-                handle = win32file.CreateFile(
-                    file_path,
-                    win32con.GENERIC_WRITE,
-                    win32con.FILE_SHARE_WRITE | win32con.FILE_SHARE_READ | win32con.FILE_SHARE_DELETE,
-                    None,
-                    win32con.OPEN_EXISTING,
-                    win32con.FILE_ATTRIBUTE_NORMAL,
-                    None
-                )
-                win32file.CloseHandle(handle)
-                print(f"Successfully unlocked file: {file_path}")
-            except Exception as e:
-                print(f"Failed to unlock file: {file_path}: {e}")
+                    # Check if it's a file or directory and delete accordingly
+                    if os.path.isfile(item_path) or os.path.islink(item_path):
+                        os.remove(item_path)  # Remove file or symbolic link
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path)  # Remove directory
 
-        if os.path.exists(extracted_directory):
-            try:
-                for root, dirs, files in os.walk(extracted_directory):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        unlock_file(file_path)  # Forcefully unlock the file before deletion
-
-                # Attempt to remove the directory structure
-                shutil.rmtree(extracted_directory, onerror=handle_remove_readonly)
-                print(f"Cleaned up directory: {extracted_directory}")
+                print(f"Cleaned up directory: {data_directory}")
             except Exception as e:
-                print(f"Error cleaning up directory: {e}")
+                print(f"Error cleaning up directory '{data_directory}': {e}")
         else:
-            print(f"No directory to clean: {extracted_directory}")
+            print(f"Directory does not exist: {data_directory}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
