@@ -610,7 +610,7 @@ class CSMTab(QWidget):
             capstone_df.loc[
             capstone_df["Destination Name*"].str.contains(r"SCF-MID ISLAND", case=False, na=False),
             ["Order Type*", "Reference 2"]
-            ] = ["504", "CBAT99"]
+            ] = [504, "CBAT99"]
 
             # Save the Capstone report to a CSV file
             capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
@@ -648,10 +648,12 @@ class CSMTab(QWidget):
                 username = os.getenv("FTP_USERNAME")
                 password = os.getenv("FTP_SECRET")
                 remote_dir = os.getenv("REMOTEDIR")
-                port= int(os.getenv("PORT", 990))
+                port= int(os.getenv("PORT", 22))
 
                 print('Rocket Fuel')
                 print(username)
+                print(host)
+                
 
                 result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
             #     result = upload_to_ftps(file_path, 

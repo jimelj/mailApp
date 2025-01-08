@@ -1,8 +1,8 @@
 import os
 import platform  # For OS detection
 import fitz  # PyMuPDF
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap, QImage
 
 
@@ -82,6 +82,22 @@ class PrintTrayTagsTab(QWidget):
         self.print_layout.addWidget(self.print_button)
         self.print_layout.addStretch()
         self.main_layout.addLayout(self.print_layout)
+
+    # def show_error(self, message, timeout=5000):
+    #     """
+    #     Show a temporary error message in the QLabel.
+
+    #     Args:
+    #         message (str): The error message to display.
+    #         timeout (int): How long the message should appear (in milliseconds).
+    #     """
+    #     self.error_label.setText(message)
+    #     self.error_label.setStyleSheet("color: red; font-size: 14px;")
+    #     self.error_label.show()
+
+    #     # Set up a QTimer to hide the label after the specified timeout
+    #     QTimer.singleShot(timeout, self.clear_error)
+    
 
     def load_pdf(self, pdf_path):
         """Load the PDF file."""

@@ -1,82 +1,127 @@
 import pycurl
 from io import BytesIO
+import paramiko
 import os
 from urllib.parse import quote
 
+# def upload_to_ftps(file_path, host, username, password, remote_dir, port):
+#     # port = int(port)
+#     print(file_path)
+#     """
+#     Uploads a file to an FTPS server with progress feedback.
 
-def upload_to_ftps(file_path, host, username, password, remote_dir, port):
-    # port = int(port)
-    print(file_path)
+#     Args:
+#         file_path (str): Path to the file to upload.
+#         host (str): FTPS server hostname.
+#         username (str): FTPS username.
+#         password (str): FTPS password.
+#         remote_dir (str): Directory on the server where the file will be uploaded.
+#         port (int): FTPS port number (default: 990).
+#     """
+#     try:
+#         # Validate file existence
+#         if not os.path.exists(file_path):
+#             raise FileNotFoundError(f"File not found: {file_path}")
+        
+#         # Encode the file name to handle special characters
+#         remote_file_name = quote(os.path.basename(file_path))
+#         # Encode the password for safe transmission
+#         file_path = os.path.normpath(file_path)
+
+
+#         file_size = os.path.getsize(file_path)
+
+#         def progress(download_total, downloaded, upload_total, uploaded):
+#             if upload_total > 0:  # Avoid division by zero
+#                 percent_complete = int((uploaded / upload_total) * 100)
+#                 print(f"Uploading... {percent_complete}% ({uploaded}/{upload_total} bytes)", end="\r")
+
+#         # Construct the FTPS URL
+#         ftps_url = f"ftps://{host}:{port}{remote_dir}/{remote_file_name}"
+#         print(f"FTPS URL: {ftps_url}")        
+
+#         # Prepare the cURL handle
+#         c = pycurl.Curl()
+#         c.setopt(c.URL, ftps_url)
+#         c.setopt(c.USERPWD, f"{username}:{password}")
+#         c.setopt(c.UPLOAD, 1)
+#         c.setopt(c.SSL_VERIFYPEER, 0)
+#         c.setopt(c.SSL_VERIFYHOST, 0)
+#         c.setopt(c.READFUNCTION, open(file_path, "rb").read)
+#         c.setopt(c.INFILESIZE, file_size)
+#         c.setopt(c.NOPROGRESS, 0)  # Enable progress meter
+#         c.setopt(c.XFERINFOFUNCTION, progress)  # Progress callback
+#         # Explicit FTPS
+#         c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)
+#         c.setopt(c.VERBOSE, True)
+
+#         # Capture the response
+#         response_buffer = BytesIO()
+#         c.setopt(c.WRITEDATA, response_buffer)
+
+#         print(f"Starting upload to {host}:{port}{remote_dir}...")
+#         c.perform()  # Perform the upload
+
+#         # Get the response code before closing the handle
+#         response_code = c.getinfo(c.RESPONSE_CODE)
+#         c.close()
+
+#         # Check the response
+#         if response_code == 226:  # 226 indicates successful upload
+#             print("\nFile uploaded successfully.")
+#             return "File uploaded successfully."
+#         else:
+#             raise Exception(f"Upload failed with response code: {response_code}")
+
+#     except Exception as e:
+#         print(f"\nError during FTPS upload: {e}")
+#         return f"FTPS upload failed: {e}"
+# 
+
+def upload_to_ftps(file_path, host, username, password, remote_dir, port=22):
     """
-    Uploads a file to an FTPS server with progress feedback.
+    Uploads a file to an SFTP server with progress feedback.
 
     Args:
         file_path (str): Path to the file to upload.
-        host (str): FTPS server hostname.
-        username (str): FTPS username.
-        password (str): FTPS password.
+        host (str): SFTP server hostname.
+        username (str): SFTP username.
+        password (str): SFTP password.
         remote_dir (str): Directory on the server where the file will be uploaded.
-        port (int): FTPS port number (default: 990).
+        port (int): SFTP port number (default: 22).
     """
     try:
         # Validate file existence
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
-        
-        # Encode the file name to handle special characters
-        remote_file_name = quote(os.path.basename(file_path))
-        # Encode the password for safe transmission
-        file_path = os.path.normpath(file_path)
-
 
         file_size = os.path.getsize(file_path)
+        file_name = os.path.basename(file_path)
 
-        def progress(download_total, downloaded, upload_total, uploaded):
-            if upload_total > 0:  # Avoid division by zero
-                percent_complete = int((uploaded / upload_total) * 100)
-                print(f"Uploading... {percent_complete}% ({uploaded}/{upload_total} bytes)", end="\r")
+        # Connect to the SFTP server
+        transport = paramiko.Transport((host, port))
+        transport.connect(username=username, password=password)
 
-        # Construct the FTPS URL
-        ftps_url = f"ftps://{host}:{port}{remote_dir}/{remote_file_name}"
-        print(f"FTPS URL: {ftps_url}")        
+        sftp = paramiko.SFTPClient.from_transport(transport)
 
-        # Prepare the cURL handle
-        c = pycurl.Curl()
-        c.setopt(c.URL, ftps_url)
-        c.setopt(c.USERPWD, f"{username}:{password}")
-        c.setopt(c.UPLOAD, 1)
-        c.setopt(c.SSL_VERIFYPEER, 0)
-        c.setopt(c.SSL_VERIFYHOST, 0)
-        c.setopt(c.READFUNCTION, open(file_path, "rb").read)
-        c.setopt(c.INFILESIZE, file_size)
-        c.setopt(c.NOPROGRESS, 0)  # Enable progress meter
-        c.setopt(c.XFERINFOFUNCTION, progress)  # Progress callback
-        # Explicit FTPS
-        c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)
-        c.setopt(c.VERBOSE, True)
+        remote_path = os.path.join(remote_dir, file_name)
+        
+        def progress_transferred(transferred, total):
+            percent = (transferred / total) * 100
+            print(f"Uploading... {percent:.2f}% ({transferred}/{total} bytes)", end="\r")
 
-        # Capture the response
-        response_buffer = BytesIO()
-        c.setopt(c.WRITEDATA, response_buffer)
+        # Open the file and upload with progress
+        with open(file_path, "rb") as file:
+            sftp.putfo(file, remote_path, callback=progress_transferred)
 
-        print(f"Starting upload to {host}:{port}{remote_dir}...")
-        c.perform()  # Perform the upload
-
-        # Get the response code before closing the handle
-        response_code = c.getinfo(c.RESPONSE_CODE)
-        c.close()
-
-        # Check the response
-        if response_code == 226:  # 226 indicates successful upload
-            print("\nFile uploaded successfully.")
-            return "File uploaded successfully."
-        else:
-            raise Exception(f"Upload failed with response code: {response_code}")
+        print("\nFile uploaded successfully.")
+        sftp.close()
+        transport.close()
+        return "File uploaded successfully."
 
     except Exception as e:
-        print(f"\nError during FTPS upload: {e}")
-        return f"FTPS upload failed: {e}"
-
+        print(f"Error during SFTP upload: {e}")
+        return f"SFTP upload failed: {e}"
 
 #         # import paramiko
 
