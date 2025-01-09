@@ -78,52 +78,40 @@ from urllib.parse import quote
 #         return f"FTPS upload failed: {e}"
 # 
 
-def upload_to_ftps(file_path, host, username, password, remote_dir, port=22):
-    """
-    Uploads a file to an SFTP server with progress feedback.
 
-    Args:
-        file_path (str): Path to the file to upload.
-        host (str): SFTP server hostname.
-        username (str): SFTP username.
-        password (str): SFTP password.
-        remote_dir (str): Directory on the server where the file will be uploaded.
-        port (int): SFTP port number (default: 22).
-    """
+def upload_to_ftps(file_path, host, username, password, remote_dir, port):
     try:
         # Validate file existence
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
-
-        file_size = os.path.getsize(file_path)
-        file_name = os.path.basename(file_path)
-
-        # Connect to the SFTP server
-        transport = paramiko.Transport((host, port))
-        transport.connect(username=username, password=password)
-
-        sftp = paramiko.SFTPClient.from_transport(transport)
-
-        remote_path = os.path.join(remote_dir, file_name)
         
-        def progress_transferred(transferred, total):
-            percent = (transferred / total) * 100
-            print(f"Uploading... {percent:.2f}% ({transferred}/{total} bytes)", end="\r")
+        # Create SSH client
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Automatically add host keys
 
-        # Open the file and upload with progress
-        with open(file_path, "rb") as file:
-            sftp.putfo(file, remote_path, callback=progress_transferred)
+        # Connect to the server
+        print(f"Connecting to {host}:{port}...")
+        ssh.connect(hostname=host, port=port, username=username, password=password)
+        
+        # Open SFTP session
+        sftp = ssh.open_sftp()
 
-        print("\nFile uploaded successfully.")
+        # Normalize remote path
+        remote_path = os.path.join(remote_dir, os.path.basename(file_path))
+
+        # Upload file
+        print(f"Uploading {file_path} to {remote_path} on {host}...")
+        sftp.put(file_path, remote_path)
+
+        print("Upload successful!")
         sftp.close()
-        transport.close()
-        return "File uploaded successfully."
+        ssh.close()
 
+    except paramiko.SSHException as e:
+        print(f"SSH error: {e}")
     except Exception as e:
         print(f"Error during SFTP upload: {e}")
-        return f"SFTP upload failed: {e}"
 
-#         # import paramiko
 
 # def upload_to_sftp(file_path, sftp_host, sftp_user, sftp_password, remote_dir="/"):
 #     """

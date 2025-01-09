@@ -653,6 +653,7 @@ class CSMTab(QWidget):
                 print('Rocket Fuel')
                 print(username)
                 print(host)
+                print(password)
                 
 
                 result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
