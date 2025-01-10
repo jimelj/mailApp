@@ -16,12 +16,40 @@ import stat
 from time import sleep
 import fitz
 from pathlib import Path
+import subprocess
 from dotenv import load_dotenv
+import traceback
+import logging
 # Conditional import for Windows-specific packages
 if platform.system() == "Windows":
     import win32file
     import win32con
 
+
+def set_working_directory():
+    # Get the directory of the executable or script
+    if getattr(sys, 'frozen', False):  # Check if bundled by PyInstaller
+        application_path = os.path.dirname(sys.executable)
+    else:
+        application_path = os.path.dirname(__file__)
+
+    os.chdir(application_path)
+    print(f"Working directory set to: {application_path}")
+
+set_working_directory()
+
+
+
+logging.basicConfig(
+    filename="error.log",
+    level=logging.ERROR,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+def log_uncaught_exceptions(ex_cls, ex, tb):
+    logging.critical("Uncaught exception", exc_info=(ex_cls, ex, tb))
+
+sys.excepthook = log_uncaught_exceptions
 
 # Load environment variables from .env file
 env_path = os.path.join(os.path.dirname(__file__), ".env")
@@ -30,6 +58,22 @@ if os.path.exists(env_path):
     print("Environment variables loaded from .env file.")
 else:
     print("Warning: .env file not found. Using default environment variables.")
+
+
+def get_version():
+    # Try to get version from Git tags
+    try:
+        version = subprocess.check_output(["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL)
+        return version.decode("utf-8").strip()
+    except Exception:
+        # Fallback to VERSION file if Git tags are unavailable
+        with open("VERSION", "r") as file:
+            return file.read().strip()
+
+__version__ = get_version()
+
+# Print version for confirmation
+print(f"App Version: {__version__}")
 
 # Set high DPI scaling policy
 QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
@@ -82,6 +126,8 @@ class MainTab(QWidget):
         # Feedback Label
         self.feedback_label = QLabel("")
         self.layout.addWidget(self.feedback_label)
+
+        
 
     # def clean_up_directories(self):
     #     """Delete all contents inside the 'data/extracted' directory."""
@@ -189,6 +235,28 @@ class MainTab(QWidget):
             return file_date
         except Exception:
             return "Unknown Date"
+        
+
+def main():
+    try:
+        # Your existing main code here
+        app = QApplication(sys.argv)
+        main_window = MainApp()
+        main_window.show()
+        sys.exit(app.exec())
+    except Exception as e:
+        # Log the exception to a file
+        with open("error.log", "w") as log_file:
+            log_file.write("An error occurred:\n")
+            log_file.write(str(e) + "\n")
+            log_file.write(traceback.format_exc())
+        print(f"An error occurred. Check error.log for details: {e}")
+
+# if __name__ == "__main__":
+#     main()
+
+
+
 class MainApp(QMainWindow):
     """Main application window with tabbed navigation."""
 
@@ -204,6 +272,9 @@ class MainApp(QMainWindow):
 
         # Set the window size relative to the screen size (e.g., 80% width and height)
         self.resize(int(screen_width * 0.8), int(screen_height * 0.8))
+
+        # Add the app version to the status bar
+        self.statusBar().showMessage(f"Version: {__version__}")
 
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -325,4 +396,4 @@ if __name__ == "__main__":
     sys.exit(app.exec())
 
 
-  
+         
