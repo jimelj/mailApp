@@ -170,3 +170,6 @@ cython_debug/
 facilityReport.xlsx
 CSM_Report.xlsx
 Zips by Address File Group.xlsx
+
+icon.icns
+icon.ico

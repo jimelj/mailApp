@@ -52,8 +52,14 @@ def build_app():
     # Determine the correct separator for the --add-data flag based on the OS
     if platform.system() == "Windows":
         separator = ";"
+        icon_path = "icon.ico"  # Use .ico for Windows
     else:
         separator = ":"
+        icon_path = "icon.icns"  # Use .icns for macOS
+
+    # Check if the icon file exists
+    if not os.path.exists(icon_path):
+        raise FileNotFoundError(f"Icon file not found: {icon_path}")
 
     # Build the PyInstaller command
     pyinstaller_command = [
@@ -64,6 +70,7 @@ def build_app():
         f"--add-data=facilityReport.xlsx{separator}.",
         f"--add-data=Zips by Address File Group.xlsx{separator}.",
         f"--add-data=VERSION{separator}.",
+        f"--icon={icon_path}",  # Add the icon file
         f"--name=PostFlow-{version}",
         "main.py"
     ]
