@@ -21,6 +21,9 @@ if platform.system() == "Windows":
 
 def parse_zip_and_prepare_data(zip_file_path):
     """Extracts a ZIP file and parses the CSM data."""
+
+    # Add debug statement to log data type
+    print(f"DEBUG: zip_file_path type - {type(zip_file_path)}, Value - {zip_file_path}")
     extracted_folder = "data/extracted"
 
     # Ensure the extracted folder exists

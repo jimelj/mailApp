@@ -26,19 +26,85 @@ if platform.system() == "Windows":
     import win32con
 
 
+# def set_working_directory():
+#     # Get the directory of the executable or script
+#     if getattr(sys, 'frozen', False):  # Check if bundled by PyInstaller
+#         application_path = os.path.dirname(sys.executable)
+#     else:
+#         application_path = os.path.dirname(__file__)
+
+#     os.chdir(application_path)
+#     print(f"Working directory set to: {application_path}")
+# Determine the base path for bundled or development environment
+# if getattr(sys, 'frozen', False):  # Check if running as a bundled application
+#     base_path = sys._MEIPASS
+# else:
+#     base_path = os.path.dirname(__file__)
+
+# # Construct paths to bundled data files
+# facility_report_path = os.path.join(base_path, 'facilityReport.xlsx')
+# zips_address_file_path = os.path.join(base_path, 'Zips by Address File Group.xlsx')
+# env_file_path = os.path.join(base_path, '.env')
+
+# # Print paths for debugging purposes
+# print(f"DEBUG: Facility Report Path - {facility_report_path}")
+# print(f"DEBUG: Zips Address File Path - {zips_address_file_path}")
+# print(f"DEBUG: .env File Path - {env_file_path}")
+
+
+# def set_working_directory():
+#     # Get the directory of the executable or script
+#     if getattr(sys, 'frozen', False):  # Check if bundled by PyInstaller
+#         application_path = os.path.dirname(sys.executable)
+#     else:
+#         application_path = os.path.dirname(__file__)
+
+#     os.chdir(application_path)
+#     print(f"DEBUG: Working directory set to: {application_path}")
+
+#     # Dynamically determine paths for bundled files
+#     global facility_report_path, zips_address_file_path, env_file_path
+#     facility_report_path = os.path.join(application_path, "facilityReport.xlsx")
+#     zips_address_file_path = os.path.join(application_path, "Zips by Address File Group.xlsx")
+#     env_file_path = os.path.join(application_path, ".env")
+
+#     # Debugging the paths
+#     print(f"DEBUG: Facility Report Path - {facility_report_path}")
+#     print(f"DEBUG: Zips Address File Path - {zips_address_file_path}")
+#     print(f"DEBUG: .env File Path - {env_file_path}")
+
+
+
+# set_working_directory()
+
 def set_working_directory():
-    # Get the directory of the executable or script
-    if getattr(sys, 'frozen', False):  # Check if bundled by PyInstaller
-        application_path = os.path.dirname(sys.executable)
+    """
+    Sets the working directory based on the runtime environment (bundled or development)
+    and dynamically determines paths for bundled files.
+    """
+    global facility_report_path, zips_address_file_path, env_file_path
+
+    if getattr(sys, 'frozen', False):  # Check if running as a bundled application
+        base_path = sys._MEIPASS  # Temporary directory for PyInstaller bundled app
     else:
-        application_path = os.path.dirname(__file__)
+        base_path = os.path.dirname(__file__)  # Development environment
 
-    os.chdir(application_path)
-    print(f"Working directory set to: {application_path}")
+    # Set the working directory
+    os.chdir(base_path)
+    print(f"DEBUG: Working directory set to: {base_path}")
 
+    # Construct paths to bundled or local data files
+    facility_report_path = os.path.join(base_path, "facilityReport.xlsx")
+    zips_address_file_path = os.path.join(base_path, "Zips by Address File Group.xlsx")
+    env_file_path = os.path.join(base_path, ".env")
+
+    # Print paths for debugging purposes
+    print(f"DEBUG: Facility Report Path - {facility_report_path}")
+    print(f"DEBUG: Zips Address File Path - {zips_address_file_path}")
+    print(f"DEBUG: .env File Path - {env_file_path}")
+
+# Call the function during initialization
 set_working_directory()
-
-
 
 logging.basicConfig(
     filename="error.log",
@@ -53,22 +119,44 @@ sys.excepthook = log_uncaught_exceptions
 
 # Load environment variables from .env file
 env_path = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.exists(env_path):
-    load_dotenv(dotenv_path=env_path)
+if os.path.exists(env_file_path):
+    load_dotenv(dotenv_path=env_file_path)
     print("Environment variables loaded from .env file.")
 else:
     print("Warning: .env file not found. Using default environment variables.")
 
 
+# def get_version():
+#     # Try to get version from Git tags
+#     try:
+#         version = subprocess.check_output(["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL)
+#         return version.decode("utf-8").strip()
+#     except Exception:
+#         # Fallback to VERSION file if Git tags are unavailable
+#         with open("VERSION", "r") as file:
+#             return file.read().strip()
+
 def get_version():
     # Try to get version from Git tags
     try:
-        version = subprocess.check_output(["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL)
+        version = subprocess.check_output(
+            ["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL
+        )
         return version.decode("utf-8").strip()
-    except Exception:
-        # Fallback to VERSION file if Git tags are unavailable
-        with open("VERSION", "r") as file:
-            return file.read().strip()
+    except Exception as git_error:
+        print(f"DEBUG: Git version retrieval failed: {git_error}")
+        
+        # Fallback to VERSION file
+        try:
+            version_file_path = os.path.join(
+                sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__), 
+                "VERSION"
+            )
+            with open(version_file_path, "r") as file:
+                return file.read().strip()
+        except FileNotFoundError as file_error:
+            print(f"DEBUG: VERSION file not found: {file_error}")
+            return "Unknown Version"
 
 __version__ = get_version()
 
@@ -294,6 +382,7 @@ class MainApp(QMainWindow):
     def closeEvent(self, event):
         """Clean up directories when the application closes."""
         self.clean_up_directories()
+        self.clean_up_temporary_directories()
         event.accept()
 
     
@@ -387,7 +476,28 @@ class MainApp(QMainWindow):
                 print(f"Cleaned up directory: {data_directory}")
         except Exception as e:
             print(f"Error cleaning up directory '{data_directory}': {e}")
-  
+    def clean_up_temporary_directories():
+        """
+        Cleans up the temporary directory created by the application during execution.
+        """
+        try:
+            # Check if running in a PyInstaller bundled app
+            if getattr(sys, 'frozen', False):
+                temp_dir = sys._MEIPASS  # Temporary directory used by PyInstaller
+                app_temp_data_dir = os.path.join(temp_dir, "data")
+
+                print(f"Cleaning up temporary directory: {app_temp_data_dir}")
+
+                # Check if the directory exists
+                if os.path.exists(app_temp_data_dir):
+                    shutil.rmtree(app_temp_data_dir)  # Remove the directory and its contents
+                    print(f"Successfully cleaned up: {app_temp_data_dir}")
+                else:
+                    print(f"Temporary directory does not exist: {app_temp_data_dir}")
+            else:
+                print("Not running in a PyInstaller bundled app. Skipping temp directory cleanup.")
+        except Exception as e:
+            print(f"Error during cleanup of temporary directory: {e}")
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
