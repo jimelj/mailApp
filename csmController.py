@@ -589,13 +589,13 @@ class CSMTab(QWidget):
                 "Reference 1": self.df_filtered["Container Destination Zip"],
                 "Reference 2": merged_df["truckload"],  # Populate with truckload
                 "Order Type*": merged_df["ratedesc"].map(order_type_mapping),  # Populate with ratedesc
-                "Pieces": self.df_filtered["Number of Pieces"],
+                "Pieces": "",
                 "Weight": self.df_filtered["Total Weight"].str.replace(" LBS", "", regex=False),
                 "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"] + " 3:00 AM",
                 "Driver ID": "",
                 "Order Comments": "",
                 "Parcel Barcode": self.df_filtered["Label: IM™ Container - Final"],
-                "Parcel Pieces": "",
+                "Parcel Pieces": self.df_filtered["Number of Pieces"],
                 "Parcel Length": "",
                 "Parcel Width": "",
                 "Parcel Height": "",
@@ -611,6 +611,8 @@ class CSMTab(QWidget):
             capstone_df["Destination Name*"].str.contains(r"SCF-MID ISLAND", case=False, na=False),
             ["Order Type*", "Reference 2"]
             ] = [504, "CBAT99"]
+            # Drop rows where 'Parcel Barcode' starts with "11"
+            capstone_df = capstone_df[~capstone_df["Parcel Barcode"].astype(str).str.startswith("11", na=False)]
 
             # Save the Capstone report to a CSV file
             capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
@@ -654,7 +656,7 @@ class CSMTab(QWidget):
                 print(username)
                 print(host)
                 print(password)
-                
+
 
                 result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
             #     result = upload_to_ftps(file_path, 

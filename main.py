@@ -16,11 +16,20 @@ import stat
 from time import sleep
 import fitz
 from pathlib import Path
+from dotenv import load_dotenv
 # Conditional import for Windows-specific packages
 if platform.system() == "Windows":
     import win32file
     import win32con
 
+
+# Load environment variables from .env file
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    load_dotenv(dotenv_path=env_path)
+    print("Environment variables loaded from .env file.")
+else:
+    print("Warning: .env file not found. Using default environment variables.")
 
 # Set high DPI scaling policy
 QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
