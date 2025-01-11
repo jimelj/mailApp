@@ -61,7 +61,13 @@ jobs:
 
       - name: Package macOS build as DMG
         if: matrix.os == 'macos-latest'
-        run: npx create-dmg dist/PostFlow-${{ github.ref_name }}.app --overwrite --no-sign
+        run: |
+          if [ -d "dist/PostFlow-${{ github.ref_name }}.app" ]; then
+            npx create-dmg dist/PostFlow-${{ github.ref_name }}.app --overwrite --no-sign
+          else
+            echo "App bundle not found. Skipping DMG packaging."
+            exit 1
+          fi
 
       - name: Archive build artifacts
         if: always()
