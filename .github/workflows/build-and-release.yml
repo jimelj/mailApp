@@ -47,7 +47,7 @@ jobs:
               --add-data "Zips by Address File Group.xlsx;." \
               --icon=icon.ico \
               --name=PostFlow-${{ github.ref_name }} main.py
-
+          fi
       - name: Package macOS build as DMG
         if: matrix.os == 'macos-latest'
         run: npx create-dmg dist/PostFlow-${{ github.ref_name }}
