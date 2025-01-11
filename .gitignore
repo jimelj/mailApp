@@ -173,3 +173,6 @@ Zips by Address File Group.xlsx
 
 icon.icns
 icon.ico
+
+*.dmg
+*.exe
