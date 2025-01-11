@@ -55,96 +55,6 @@ jobs:
           echo "Listing dist directory:"
           ls dist
 
-      - name: Install create-dmg (for macOS)
-        if: matrix.os == 'macos-latest'
-        run: npm install -g create-dmg
-
-      - name: Package macOS build as DMG
-        if: matrix.os == 'macos-latest'
-        run: |
-          if [ -d "dist/PostFlow-${{ github.ref_name }}.app" ]; then
-            npx create-dmg dist/PostFlow-${{ github.ref_name }}.app --overwrite --no-sign
-          else
-            echo "App bundle not found. Skipping DMG packaging."
-            exit 1
-          fi
-
-      - name: Archive build artifacts
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: postflow-${{ matrix.os }}
-          path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.app
-
-      - name: Clean up temporary files
-        run: |
-          rm .env || true
-          rm -rf dist || true
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:name: Build and Release
-
-on:
-  push:
-    tags:
-      - 'v*'  # Triggers on tags starting with 'v'
-
-jobs:
-  build:
-    name: Build App
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]  # Target macOS and Windows
-        python-version: [3.11]  # Specify Python version
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Create .env file from secret
-        env:
-          POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
-        run: echo "$POSTFLOW_ENV_CONTENT" > .env
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Build application with PyInstaller
-        shell: bash
-        run: |
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env:." \
-              --add-data "facilityReport.xlsx:." \
-              --add-data "Zips by Address File Group.xlsx:." \
-              --icon=icon.icns \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env;." \
-              --add-data "facilityReport.xlsx;." \
-              --add-data "Zips by Address File Group.xlsx;." \
-              --icon=icon.ico \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          fi
-
-      - name: Verify build artifacts
-        run: |
-          echo "Listing dist directory:"
-          ls dist
-
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
@@ -176,21 +86,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: release-artifacts
-
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: release-artifacts/*
-          tag: ${{ github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: "PostFlow-${{ github.ref_name }}"
-          body: |
-            ## Changes in this release
-            Add your release notes here.
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
