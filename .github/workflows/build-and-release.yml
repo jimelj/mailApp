@@ -37,6 +37,8 @@ jobs:
           # Conditionally install pywin32 for Windows
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             pip install pywin32==308
+            pip install pypiwin32==223
+            pip install pywin32-ctypes==0.2.3
           fi
 
       - name: Build application with PyInstaller
