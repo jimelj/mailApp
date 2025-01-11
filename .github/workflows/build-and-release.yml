@@ -34,14 +34,14 @@ jobs:
       - name: Build application with PyInstaller
         shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+          if [ "${{ matrix.os }}" == "macos-latest" ]; then
             pyinstaller --onefile --noconsole \
               --add-data ".env:." \
               --add-data "facilityReport.xlsx:." \
               --add-data "Zips by Address File Group.xlsx:." \
               --icon=icon.icns \
               --name=PostFlow-${{ github.ref_name }} main.py
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
             pyinstaller --onefile --noconsole \
               --add-data ".env;." \
               --add-data "facilityReport.xlsx;." \
@@ -49,6 +49,16 @@ jobs:
               --icon=icon.ico \
               --name=PostFlow-${{ github.ref_name }} main.py
           fi
+
+      - name: Verify build artifacts
+        run: |
+          echo "Listing dist directory:"
+          ls dist
+
+      - name: Install create-dmg (for macOS)
+        if: matrix.os == 'macos-latest'
+        run: npm install -g create-dmg
+
       - name: Package macOS build as DMG
         if: matrix.os == 'macos-latest'
         run: npx create-dmg dist/PostFlow-${{ github.ref_name }}.app --overwrite --no-sign
@@ -61,9 +71,12 @@ jobs:
           path: |
             dist/*.exe
             dist/*.dmg
+            dist/*.app
 
-      - name: Clean up .env
-        run: rm .env
+      - name: Clean up temporary files
+        run: |
+          rm .env || true
+          rm -rf dist || true
 
   release:
     name: Create GitHub Release
