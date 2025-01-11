@@ -30,7 +30,14 @@ jobs:
         run: echo "$POSTFLOW_ENV_CONTENT" > .env
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          # Install base requirements
+          pip install -r requirements.txt
+
+          # Conditionally install pywin32 for Windows
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            pip install pywin32==308
+          fi
 
       - name: Build application with PyInstaller
         shell: bash
