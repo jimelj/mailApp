@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]  # Target macOS and Windows
-        python-version: [3.9]  # Specify Python version
+        python-version: [3.10]  # Specify Python version
 
     steps:
       - name: Checkout repository
