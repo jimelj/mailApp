@@ -78,8 +78,12 @@ jobs:
 
       - name: Clean up temporary files
         run: |
-          rm .env || true
-          rm -rf dist || true
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            Remove-Item -Path dist, .env -Recurse -Force
+          else
+            rm -rf dist .env || true
+          fi
+        shell: bash
 
   release:
     name: Create GitHub Release
