@@ -35,21 +35,23 @@ jobs:
       - name: Build application with PyInstaller
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env:." \
-              --add-data "facilityReport.xlsx:." \
-              --add-data "Zips by Address File Group.xlsx:." \
-              --icon=icon.icns \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env;." \
-              --add-data "facilityReport.xlsx;." \
-              --add-data "Zips by Address File Group.xlsx;." \
-              --icon=icon.ico \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          fi
+            if [ "${{ matrix.os }}" == "macos-latest" ]; then
+              pyinstaller --onefile --noconsole \
+                --add-data ".env:." \
+                --add-data "facilityReport.xlsx:." \
+                --add-data "Zips by Address File Group.xlsx:." \
+                --add-data "resources/splash.png:resources" \
+                --icon=icon.icns \
+                --name=PostFlow-${{ github.ref_name }} main.py
+            elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+              pyinstaller --onefile --noconsole \
+                --add-data ".env;." \
+                --add-data "facilityReport.xlsx;." \
+                --add-data "Zips by Address File Group.xlsx;." \
+                --add-data "resources/splash.png;resources" \
+                --icon=icon.ico \
+                --name=PostFlow-${{ github.ref_name }} main.py
+            fi
 
       - name: Verify build artifacts
         run: |
