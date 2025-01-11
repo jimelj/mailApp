@@ -27,6 +27,8 @@
 import subprocess
 import os
 import platform
+import logging
+import shutil
 
 def get_version():
     """
@@ -45,10 +47,30 @@ def get_version():
         else:
             raise FileNotFoundError("No Git tags found and VERSION file is missing.")
 
-def build_app():
-    # Get version dynamically
-    version = get_version()
+def clean_previous_builds():
+    for folder in ["dist", "build"]:
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+            logging.info(f"Deleted previous build folder: {folder}")
+    for file in os.listdir("."):
+        if file.endswith(".spec"):
+            os.remove(file)
+            logging.info(f"Deleted previous spec file: {file}")
 
+def build_app():
+    logging.basicConfig(
+        filename="build.log",
+        level=logging.DEBUG,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    logging.info("Starting build process...")
+    # Get version dynamically
+    try:
+        version = get_version()
+        logging.info(f"App version: {version}")
+    except Exception as e:
+        logging.error(f"Failed to retrieve version: {e}")
+        return
     # Determine the correct separator for the --add-data flag based on the OS
     if platform.system() == "Windows":
         separator = ";"
@@ -57,9 +79,16 @@ def build_app():
         separator = ":"
         icon_path = "icon.icns"  # Use .icns for macOS
 
+    required_files = [".env", "facilityReport.xlsx", "Zips by Address File Group.xlsx", "VERSION", icon_path]
+    for file in required_files:
+        if not os.path.exists(file):
+            logging.error(f"Required file is missing: {file}")
+            return
     # Check if the icon file exists
     if not os.path.exists(icon_path):
         raise FileNotFoundError(f"Icon file not found: {icon_path}")
+
+    clean_previous_builds()
 
     # Build the PyInstaller command
     pyinstaller_command = [
@@ -70,6 +99,7 @@ def build_app():
         f"--add-data=facilityReport.xlsx{separator}.",
         f"--add-data=Zips by Address File Group.xlsx{separator}.",
         f"--add-data=VERSION{separator}.",
+        f"--add-data=resources/splash.png{separator}resources",
         f"--icon={icon_path}",  # Add the icon file
         f"--name=PostFlow-{version}",
         "main.py"
@@ -82,11 +112,16 @@ def build_app():
     # Run the PyInstaller command
     try:
         subprocess.run(pyinstaller_command, check=True)
-        print("Build completed successfully!")
+        logging.info("Build completed successfully!")
+        output_path = os.path.join("dist", f"PostFlow-{version}")
+        if os.path.exists(output_path):
+            logging.info(f"Build output located at: {output_path}")
+        else:
+            logging.error("Build completed but output directory is missing.")
     except subprocess.CalledProcessError as e:
-        print(f"Build failed with error: {e}")
+        logging.error(f"PyInstaller build failed: {e}")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logging.error(f"Unexpected error: {e}")
 
 if __name__ == "__main__":
     build_app()
