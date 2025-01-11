@@ -3,9 +3,9 @@ import os
 import platform 
 import shutil
 from datetime import datetime 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen
+from PySide6.QtGui import QGuiApplication, QPixmap
 import pandas as pd
 from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
@@ -74,7 +74,6 @@ if platform.system() == "Windows":
 #     print(f"DEBUG: .env File Path - {env_file_path}")
 
 
-
 # set_working_directory()
 
 def set_working_directory():
@@ -82,7 +81,7 @@ def set_working_directory():
     Sets the working directory based on the runtime environment (bundled or development)
     and dynamically determines paths for bundled files.
     """
-    global facility_report_path, zips_address_file_path, env_file_path
+    global facility_report_path, zips_address_file_path, env_file_path, splash_screen_path
 
     if getattr(sys, 'frozen', False):  # Check if running as a bundled application
         base_path = sys._MEIPASS  # Temporary directory for PyInstaller bundled app
@@ -97,14 +96,57 @@ def set_working_directory():
     facility_report_path = os.path.join(base_path, "facilityReport.xlsx")
     zips_address_file_path = os.path.join(base_path, "Zips by Address File Group.xlsx")
     env_file_path = os.path.join(base_path, ".env")
+    splash_screen_path = os.path.join(base_path, 'resources', 'splash.png')
 
     # Print paths for debugging purposes
     print(f"DEBUG: Facility Report Path - {facility_report_path}")
     print(f"DEBUG: Zips Address File Path - {zips_address_file_path}")
     print(f"DEBUG: .env File Path - {env_file_path}")
+    print(f"DEBUG: Splash Screen Path - {splash_screen_path}")
 
 # Call the function during initialization
 set_working_directory()
+
+def simulate_loading(splash):
+    """
+    Simulate the loading process with progress updates on the splash screen.
+    """
+    tasks = [
+        "Initializing modules...",
+        "Loading resources...",
+        "Connecting to services...",
+        "Finalizing setup..."
+    ]
+
+    delay = 1000  # Delay for each task in milliseconds
+    total_duration = len(tasks) * delay
+
+    for i, task in enumerate(tasks):
+        QTimer.singleShot(i * delay, lambda t=task: update_splash_message(splash, t))
+
+    # Close the splash and load the main window after all tasks
+    QTimer.singleShot(total_duration, splash.close)
+    QTimer.singleShot(total_duration, load_main_window)
+
+
+def update_splash_message(splash, message):
+    """
+    Update the message displayed on the splash screen.
+    """
+    splash.showMessage(
+        message,
+        Qt.AlignBottom | Qt.AlignCenter,
+        Qt.white
+    )
+
+
+def load_main_window():
+    """
+    Load the main application window.
+    """
+    main_window = MainApp()
+    main_window.show()
+
 
 logging.basicConfig(
     filename="error.log",
@@ -325,24 +367,6 @@ class MainTab(QWidget):
             return "Unknown Date"
         
 
-def main():
-    try:
-        # Your existing main code here
-        app = QApplication(sys.argv)
-        main_window = MainApp()
-        main_window.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        # Log the exception to a file
-        with open("error.log", "w") as log_file:
-            log_file.write("An error occurred:\n")
-            log_file.write(str(e) + "\n")
-            log_file.write(traceback.format_exc())
-        print(f"An error occurred. Check error.log for details: {e}")
-
-# if __name__ == "__main__":
-#     main()
-
 
 
 class MainApp(QMainWindow):
@@ -350,7 +374,8 @@ class MainApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Mail Data Management System")
+        print("DEBUG: Initializing MainApp...")
+        self.setWindowTitle("PostFlow - Mail Data Management")
         screen = QApplication.primaryScreen().availableGeometry()
 
         # Ensure the window size fits within the screen dimensions
@@ -378,6 +403,22 @@ class MainApp(QMainWindow):
         self.tab_widget.addTab(self.csm_tab, "CSM")
         self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
         self.tab_widget.addTab(self.tray_tags_tab, "Print Tray Tags")
+
+    def closeEvent(self, event):
+        """
+        Handle cleanup and close operations when the application window is closed.
+        """
+        print("DEBUG: Starting closeEvent...")
+        try:
+            self.clean_up_directories()
+            print("DEBUG: Cleaned up directories.")
+            self.clean_up_temporary_directories()
+            print("DEBUG: Cleaned up temporary directories.")
+        except Exception as e:
+            print(f"DEBUG: Exception in closeEvent: {e}")
+        finally:
+            event.accept()
+            print("DEBUG: Event accepted, closing application.")
 
     def closeEvent(self, event):
         """Clean up directories when the application closes."""
@@ -476,7 +517,7 @@ class MainApp(QMainWindow):
                 print(f"Cleaned up directory: {data_directory}")
         except Exception as e:
             print(f"Error cleaning up directory '{data_directory}': {e}")
-    def clean_up_temporary_directories():
+    def clean_up_temporary_directories(self):
         """
         Cleans up the temporary directory created by the application during execution.
         """
@@ -499,11 +540,58 @@ class MainApp(QMainWindow):
         except Exception as e:
             print(f"Error during cleanup of temporary directory: {e}")
         
+def main():
+    try:
+        app = QApplication(sys.argv)
+
+        # Show splash screen
+        print(f"DEBUG: Using splash screen from path: {splash_screen_path}")
+        splash_pix = QPixmap(splash_screen_path).scaled(800, 600, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        splash = QSplashScreen(splash_pix)
+        splash.setWindowFlag(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        splash.show()
+        splash.raise_()
+        splash.activateWindow()
+        print("DEBUG: Splash screen shown and activated.")
+
+        # Perform initialization tasks
+        perform_initialization_tasks(splash)
+
+        # Show main window
+        print("DEBUG: Initializing MainApp.")
+        main_window = MainApp()
+        splash.finish(main_window)
+        main_window.show()
+        print("DEBUG: MainApp shown and running.")
+
+        sys.exit(app.exec())
+
+    except Exception as e:
+        # Log errors
+        with open("error.log", "w") as log_file:
+            log_file.write("An error occurred:\n")
+            log_file.write(str(e) + "\n")
+            log_file.write(traceback.format_exc())
+        print(f"An error occurred. Check error.log for details: {e}")
+def perform_initialization_tasks(splash):
+    """
+    Simulates initialization tasks with splash screen updates.
+    """
+    tasks = [
+        "Initializing modules...",
+        "Loading resources...",
+        "Connecting to services...",
+        "Finalizing setup..."
+    ]
+
+    for task in tasks:
+        print(f"DEBUG: {task}")
+        splash.showMessage(task, Qt.AlignBottom | Qt.AlignCenter, Qt.white)
+        QApplication.processEvents()  # Allow UI updates during long-running tasks
+        sleep(1)  # Simulate task duration
+
+
+
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    main_window = MainApp()
-    main_window.show()
-    sys.exit(app.exec())
-
-
+    main()
          
