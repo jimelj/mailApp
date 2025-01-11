@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - 'v*'  # Triggers on tags starting with 'v'
-
+permissions:
+  contents: write
 jobs:
   build:
     name: Build App
@@ -32,25 +33,42 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build application with PyInstaller
+        shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env:." \
-              --add-data "facilityReport.xlsx:." \
-              --add-data "Zips by Address File Group.xlsx:." \
-              --icon=icon.icns \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            pyinstaller --onefile --noconsole \
-              --add-data ".env;." \
-              --add-data "facilityReport.xlsx;." \
-              --add-data "Zips by Address File Group.xlsx;." \
-              --icon=icon.ico \
-              --name=PostFlow-${{ github.ref_name }} main.py
-          fi
-      - name: Package macOS build as DMG
+            if [ "${{ matrix.os }}" == "macos-latest" ]; then
+              pyinstaller --onefile --noconsole \
+                --add-data ".env:." \
+                --add-data "facilityReport.xlsx:." \
+                --add-data "Zips by Address File Group.xlsx:." \
+                --add-data "resources/splash.png:resources" \
+                --icon=icon.icns \
+                --name=PostFlow-${{ github.ref_name }} main.py
+            elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+              pyinstaller --onefile --noconsole \
+                --add-data ".env;." \
+                --add-data "facilityReport.xlsx;." \
+                --add-data "Zips by Address File Group.xlsx;." \
+                --add-data "resources/splash.png;resources" \
+                --icon=icon.ico \
+                --name=PostFlow-${{ github.ref_name }} main.py
+            fi
+
+      - name: Verify build artifacts
+        run: |
+          echo "Listing dist directory:"
+          ls dist
+
+      - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
-        run: npx create-dmg dist/PostFlow-${{ github.ref_name }}
+        run: |
+          mkdir dmg_contents
+          cp -R dist/PostFlow-${{ github.ref_name }}.app dmg_contents/
+          hdiutil create -volname "PostFlow-${{ github.ref_name }}" \
+            -srcfolder dmg_contents \
+            -ov \
+            -format UDZO \
+            dist/PostFlow-${{ github.ref_name }}.dmg
+          rm -rf dmg_contents
 
       - name: Archive build artifacts
         if: always()
@@ -61,8 +79,14 @@ jobs:
             dist/*.exe
             dist/*.dmg
 
-      - name: Clean up .env
-        run: rm .env
+      - name: Clean up temporary files
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            powershell Remove-Item -Path dist, .env -Recurse -Force
+          else
+            rm -rf dist .env || true
+          fi
+        shell: bash
 
   release:
     name: Create GitHub Release
@@ -77,7 +101,9 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: release-artifacts/*
+          artifacts: |
+            release-artifacts/postflow-macos-latest/*.dmg
+            release-artifacts/postflow-windows-latest/*.exe
           tag: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "PostFlow-${{ github.ref_name }}"
