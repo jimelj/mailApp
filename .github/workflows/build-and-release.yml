@@ -79,7 +79,7 @@ jobs:
       - name: Clean up temporary files
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            Remove-Item -Path dist, .env -Recurse -Force
+            powershell Remove-Item -Path dist, .env -Recurse -Force
           else
             rm -rf dist .env || true
           fi
