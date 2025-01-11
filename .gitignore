@@ -167,9 +167,9 @@ cython_debug/
 .DS_Store
 
 # excluding excel files
-facilityReport.xlsx
+# facilityReport.xlsx
 CSM_Report.xlsx
-Zips by Address File Group.xlsx
+# Zips by Address File Group.xlsx
 
 icon.icns
 icon.ico
