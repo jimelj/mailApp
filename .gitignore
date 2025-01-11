@@ -171,8 +171,8 @@ cython_debug/
 CSM_Report.xlsx
 # Zips by Address File Group.xlsx
 
-icon.icns
-icon.ico
+# icon.icns
+# icon.ico
 
 *.dmg
 *.exe
