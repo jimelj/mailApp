@@ -43,6 +43,13 @@ jobs:
             pip install pywin32-ctypes==0.2.3
           fi
         shell: bash
+
+      - name: Debug Git Tags
+        run: |
+          git fetch --tags
+          git tag
+          git describe --tags
+
       - name: Determine version
         shell: bash
         run: |
