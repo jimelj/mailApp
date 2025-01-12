@@ -44,12 +44,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Debug Git Tags
-        run: |
-          git fetch --tags
-          git tag
-          git describe --tags
-
       - name: Determine version
         shell: bash
         run: |
@@ -69,6 +63,8 @@ jobs:
 
       - name: Build application with PyInstaller
         shell: bash
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
             if [ "${{ matrix.os }}" = "macos-latest" ]; then
               pyinstaller --onefile --noconsole \

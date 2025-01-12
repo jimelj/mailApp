@@ -180,13 +180,21 @@ else:
 
 def get_version():
     """
-    Get the version from Git tags or fallback to the VERSION file.
+    Get the version from Git tags, environment variable, or fallback to the VERSION file.
     """
     try:
+        # Use version from environment variable if set
+        if getattr(sys, "frozen", False):  # Bundled app
+            version = os.getenv("VERSION", "Unknown Version")
+            if version != "Unknown Version":
+                print(f"DEBUG: Retrieved version from environment variable: {version}")
+                return version
+
         # Try to get the version from Git tags
         version = subprocess.check_output(
             ["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL
         )
+        print(f"DEBUG: Retrieved version from Git: {version.decode('utf-8').strip()}")
         return version.decode("utf-8").strip()
     except Exception as git_error:
         print(f"DEBUG: Git version retrieval failed: {git_error}")
@@ -194,11 +202,13 @@ def get_version():
         # Fallback to VERSION file
         try:
             version_file_path = os.path.join(
-                sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__),
-                "VERSION"
+                sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(__file__),
+                "VERSION",
             )
             with open(version_file_path, "r") as file:
-                return file.read().strip()
+                version = file.read().strip()
+                print(f"DEBUG: Retrieved version from VERSION file: {version}")
+                return version
         except FileNotFoundError as file_error:
             print(f"DEBUG: VERSION file not found: {file_error}")
             return "Unknown Version"
