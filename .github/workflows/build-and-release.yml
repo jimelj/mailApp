@@ -54,12 +54,13 @@ jobs:
 
 
       - name: Verify version
-        run: echo "Version determined: ${{ env.VERSION }}"
+        run: | 
+          echo "Version determined: ${{ env.VERSION }}"
 
       - name: Build application with PyInstaller
         shell: bash
         run: |
-            if [ "${{ matrix.os }}" == "macos-latest" ]; then
+            if [ "${{ matrix.os }}" = "macos-latest" ]; then
               pyinstaller --onefile --noconsole \
                 --add-data ".env:." \
                 --add-data "facilityReport.xlsx:." \
@@ -68,7 +69,7 @@ jobs:
                 --add-data "VERSION:." \
                 --icon=icon.icns \
                 --name=PostFlow-${{ env.VERSION }} main.py
-            elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            elif [ "${{ matrix.os }}" = "windows-latest" ]; then
               pyinstaller --onefile --noconsole \
                 --add-data ".env;." \
                 --add-data "facilityReport.xlsx;." \
