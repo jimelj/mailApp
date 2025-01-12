@@ -54,7 +54,7 @@ jobs:
 
 
       - name: Verify version
-        run: echo "Version determined: $VERSION"
+        run: echo "Version determined: ${{ env.VERSION }}"
 
       - name: Build application with PyInstaller
         shell: bash
