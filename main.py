@@ -179,19 +179,22 @@ else:
 #             return file.read().strip()
 
 def get_version():
-    # Try to get version from Git tags
+    """
+    Get the version from Git tags or fallback to the VERSION file.
+    """
     try:
+        # Try to get the version from Git tags
         version = subprocess.check_output(
             ["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL
         )
         return version.decode("utf-8").strip()
     except Exception as git_error:
         print(f"DEBUG: Git version retrieval failed: {git_error}")
-        
+
         # Fallback to VERSION file
         try:
             version_file_path = os.path.join(
-                sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__), 
+                sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__),
                 "VERSION"
             )
             with open(version_file_path, "r") as file:

@@ -41,7 +41,20 @@ jobs:
             pip install pywin32-ctypes==0.2.3
           fi
         shell: bash
-        
+      - name: Determine version
+        run: |
+          if [ -n "${{ github.ref_name }}" ]; then
+            VERSION="${{ github.ref_name }}"
+          elif [ -f VERSION ]; then
+            VERSION=$(cat VERSION)
+          else
+            VERSION="unknown"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Verify version
+        run: echo "Version determined: $VERSION"
+
       - name: Build application with PyInstaller
         shell: bash
         run: |
@@ -51,16 +64,18 @@ jobs:
                 --add-data "facilityReport.xlsx:." \
                 --add-data "Zips by Address File Group.xlsx:." \
                 --add-data "resources/splash.png:resources" \
+                --add-data "VERSION:." \
                 --icon=icon.icns \
-                --name=PostFlow-${{ github.ref_name }} main.py
+                --name=PostFlow-${{ env.VERSION }} main.py
             elif [ "${{ matrix.os }}" == "windows-latest" ]; then
               pyinstaller --onefile --noconsole \
                 --add-data ".env;." \
                 --add-data "facilityReport.xlsx;." \
                 --add-data "Zips by Address File Group.xlsx;." \
                 --add-data "resources/splash.png;resources" \
+                --add-data "VERSION:." \
                 --icon=icon.ico \
-                --name=PostFlow-${{ github.ref_name }} main.py
+                --name=PostFlow-${{ env.VERSION }} main.py
             fi
 
       - name: Verify build artifacts
@@ -72,12 +87,12 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           mkdir dmg_contents
-          cp -R dist/PostFlow-${{ github.ref_name }}.app dmg_contents/
-          hdiutil create -volname "PostFlow-${{ github.ref_name }}" \
+          cp -R dist/PostFlow-${{ env.VERSION }}.app dmg_contents/
+          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
             -srcfolder dmg_contents \
             -ov \
             -format UDZO \
-            dist/PostFlow-${{ github.ref_name }}.dmg
+            dist/PostFlow-${{ env.VERSION }}.dmg
           rm -rf dmg_contents
 
       - name: Archive build artifacts
