@@ -52,6 +52,7 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
+
       - name: Verify version
         run: echo "Version determined: $VERSION"
 
