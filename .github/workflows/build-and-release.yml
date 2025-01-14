@@ -74,7 +74,7 @@ jobs:
           
           # Generate changelog from commit messages
           if [ "$previous_tag" != "No previous tag" ]; then
-            changelog=$(git log "$previous_tag"..HEAD --pretty=format:"- %s (%h)" --reverse)
+            changelog=$(git log "$previous_tag"..HEAD --pretty=format:"- %s (%h)" --reverse | sed 's/^/  - /')
           else
             changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
           fi
@@ -165,6 +165,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git checkout -B main
           git add VERSION
           git commit -m "Update VERSION file to ${{ env.VERSION }}"
           git push
