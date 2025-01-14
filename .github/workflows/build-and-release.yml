@@ -79,11 +79,12 @@ jobs:
             changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
           fi
 
-          # Escape special characters for the changelog
-          escaped_changelog=$(echo "$changelog" | sed 's/%/%25/g; s/\n/%0A/g; s/\r/%0D/g')
+         # Escape newlines for $GITHUB_ENV
+          changelog="${changelog//'%'/'%25'}"
+          changelog="${changelog//$'\n'/'%0A'}"
+          changelog="${changelog//$'\r'/'%0D'}"
 
-
-          echo "changelog=$escaped_changelog" >> $GITHUB_ENV
+          echo "changelog=$changelog" >> $GITHUB_ENV
           echo "Changelog:"
           echo "$changelog"
 
