@@ -53,6 +53,7 @@ class UpdateApp:
     def notify_update(self, latest_version_info):
         print(f"DEBUG: Update available. Info: {latest_version_info}")
         changelog = latest_version_info.get("changelog", "No details provided.")
+        print(f"DEBUG: Current Platform: {platform.system().lower()}")
         download_url = latest_version_info["download_url"].get(platform.system().lower())
         
         if not download_url:

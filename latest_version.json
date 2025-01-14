@@ -3,6 +3,6 @@
     "changelog": "Bug fixes and improvements.",
     "download_url": {
       "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.3/PostFlow-v1.1.3.exe",
-      "macos": "https://github.com/jimelj/mailApp/releases/download/v1.1.3/PostFlow-v1.1.3.dmg"
+      "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.1.3/PostFlow-v1.1.3.dmg"
     }
   }
