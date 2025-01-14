@@ -172,9 +172,10 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git checkout -B main  # Create and switch to the main branch
+          git pull origin main --rebase  # Pull remote changes and rebase
           git add VERSION latest_version.json
           git commit -m "Update VERSION and latest_version.json to ${{ env.VERSION }}"
-          git push --set-upstream origin main
+          git push --force-with-lease --set-upstream origin main
 
   release:
     name: Create GitHub Release
