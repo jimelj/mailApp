@@ -68,6 +68,7 @@ jobs:
 
       - name: Generate Dynamic Changelog
         id: changelog
+        shell: bash
         run: |
           # Get the previous tag
           previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "No previous tag")
