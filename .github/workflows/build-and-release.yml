@@ -72,21 +72,21 @@ jobs:
           # Get the previous tag
           previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "No previous tag")
           
-          # Generate changelog from commit messages
+        # Generate changelog from commit messages
           if [ "$previous_tag" != "No previous tag" ]; then
             changelog=$(git log "$previous_tag"..HEAD --pretty=format:"- %s (%h)" --reverse | sed 's/^/  - /')
           else
             changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
           fi
 
-         # Escape newlines for $GITHUB_ENV
-          changelog="${changelog//'%'/'%25'}"
-          changelog="${changelog//$'\n'/'%0A'}"
-          changelog="${changelog//$'\r'/'%0D'}"
+        #  Escape newlines for $GITHUB_ENV
+            changelog="${changelog//'%'/'%25'}"
+            changelog="${changelog//$'\n'/'%0A'}"
+            changelog="${changelog//$'\r'/'%0D'}"
 
-          echo "changelog=$changelog" >> $GITHUB_ENV
-          echo "Changelog:"
-          echo "$changelog"
+            echo "changelog=$changelog" >> $GITHUB_ENV
+            echo "Changelog:"
+            echo "$changelog"
 
       - name: Generate Update Metadata
         run: |
