@@ -172,11 +172,24 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git checkout -B main  # Create and switch to the main branch
-          git pull origin main --rebase  # Pull remote changes and rebase
+          # Stage all changes to avoid issues with pull
+          git add .
+          
+          # Stash any remaining changes temporarily if needed
+          git stash --include-untracked || echo "No changes to stash"
+          
+          # Pull the latest changes from the remote main branch
+          git pull origin main --rebase || echo "No changes to pull"
+          
+          # Apply stashed changes back
+          git stash pop || echo "No stash to apply"
+          
+          # Add files and commit the update
           git add VERSION latest_version.json
-          git commit -m "Update VERSION and latest_version.json to ${{ env.VERSION }}"
+          git commit -m "Update VERSION and latest_version.json to ${{ env.VERSION }}" || echo "No changes to commit"
+          
+          # Push the changes forcefully with lease to handle remote changes
           git push --force-with-lease --set-upstream origin main
-
   release:
     name: Create GitHub Release
     needs: build
