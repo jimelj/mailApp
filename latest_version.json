@@ -1,12 +1,6 @@
 {
   "version": "v1.1.4",
-<<<<<<< Updated upstream
   "changelog": "  - - adding updater (571cd18)'%0A'  - - testing updater (ccbdf99)'%0A'  - -  adding new updater (f052d24)'%0A'  - - updating updater (ddfb195)'%0A'  - - adding updater again (f7f7b9a)'%0A'  - - Auto Updater complete (18bb7f8)'%0A'  - - getting ready for release 1.1.4 (e09f015)'%0A'  - - getting ready for release 1.1.4 again (b87ee24)'%0A'  - - again releasing 1.1.4 (8bcad9b)'%0A'  - - fixing yml file (0c28a2d)'%0A'  - - Update VERSION file to v1.1.4 (ec203cc)'%0A'  - - pushing new release (5dae48b)'%0A'  - - updating yml file (0b34d59)'%0A'  - - updating yml file (7e3675e)'%0A'  - - Update VERSION file to v1.1.4 (1566258)'%0A'  - - updating yml file (6e30cc0)'%0A'  - - Merge remote-tracking branch 'refs/remotes/origin/main' (c565c46)'%0A'  - - last fix (8c8042b)'%0A'  - - Update VERSION and latest_version.json to v1.1.4 (872c177)'%0A'  - - update (03c0d95)'%0A'  - - Update VERSION and latest_version.json to v1.1.4 (de3b35b)'%0A'  - - update (3ea14a4)'%0A'  - - Merge remote-tracking branch 'refs/remotes/origin/main' (d5b410d)'%0A'  - - update (8462020)",
-=======
-  "changelog": "
-  - - adding updater (571cd18)%0A  - - testing updater (ccbdf99)%0A  - -  adding new updater (f052d24)%0A  - - updating updater (ddfb195)%0A  - - adding updater again (f7f7b9a)%0A  - - Auto Updater complete (18bb7f8)%0A  - - getting ready for release 1.1.4 (e09f015)%0A  - - getting ready for release 1.1.4 again (b87ee24)%0A  - - again releasing 1.1.4 (8bcad9b)%0A  - - fixing yml file (0c28a2d)%0A  - - Update VERSION file to v1.1.4 (ec203cc)%0A  - - pushing new release (5dae48b)%0A  - - updating yml file (0b34d59)%0A  - - updating yml file (7e3675e)%0A  - - Update VERSION file to v1.1.4 (1566258)%0A  - - updating yml file (6e30cc0)%0A  - - Merge remote-tracking branch 'refs/remotes/origin/main' (c565c46)%0A  - - last fix (8c8042b)%0A  - - Update VERSION and latest_version.json to v1.1.4 (872c177)%0A  - - update (03c0d95)%0A  - - Update VERSION and latest_version.json to v1.1.4 (de3b35b)%0A  - - update (3ea14a4)%0A  - - Merge remote-tracking branch 'refs/remotes/origin/main' (d5b410d)%0A  - - update (8462020)
-",
->>>>>>> Stashed changes
   "download_url": {
     "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.4/PostFlow-v1.1.4.exe",
     "macos": "https://github.com/jimelj/mailApp/releases/download/v1.1.4/PostFlow-v1.1.4.dmg"
