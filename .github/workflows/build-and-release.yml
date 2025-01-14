@@ -79,7 +79,11 @@ jobs:
             changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
           fi
 
-          echo "changelog=$changelog" >> $GITHUB_ENV
+          # Escape special characters for the changelog
+          escaped_changelog=$(echo "$changelog" | sed 's/%/%25/g; s/\n/%0A/g; s/\r/%0D/g')
+
+
+          echo "changelog=$escaped_changelog" >> $GITHUB_ENV
           echo "Changelog:"
           echo "$changelog"
 
@@ -160,15 +164,15 @@ jobs:
           fi
         shell: bash
 
-      - name: Commit and Push Updated VERSION File
+      -- name: Commit and Push Updated VERSION File
         if: always()
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git checkout -B main
+          git checkout -B main  # Create and switch to the main branch
           git add VERSION
           git commit -m "Update VERSION file to ${{ env.VERSION }}"
-          git push
+          git push --set-upstream origin main
 
   release:
     name: Create GitHub Release
