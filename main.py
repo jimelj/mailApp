@@ -222,7 +222,7 @@ __version__ = get_version()
 print(f"App Version: {__version__}")
 
 updater = UpdateApp(__version__)
-updater.check_for_updates()
+
 
 
 # Set high DPI scaling policy
@@ -583,6 +583,7 @@ def main():
         splash.finish(main_window)
         main_window.show()
         print("DEBUG: MainApp shown and running.")
+        updater.check_for_updates()
 
         sys.exit(app.exec())
 

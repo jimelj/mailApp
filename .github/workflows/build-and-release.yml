@@ -66,11 +66,28 @@ jobs:
           echo "${{ github.ref_name }}" > VERSION
           echo "Updated VERSION file to: ${{ github.ref_name }}"
 
+      - name: Generate Dynamic Changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "No previous tag")
+          
+          # Generate changelog from commit messages
+          if [ "$previous_tag" != "No previous tag" ]; then
+            changelog=$(git log "$previous_tag"..HEAD --pretty=format:"- %s (%h)" --reverse)
+          else
+            changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
+          fi
+
+          echo "changelog=$changelog" >> $GITHUB_ENV
+          echo "Changelog:"
+          echo "$changelog"
+
       - name: Generate Update Metadata
         run: |
           echo '{
             "version": "${{ github.ref_name }}",
-            "changelog": "Bug fixes and improvements.",
+            "changelog": "'"${{ env.changelog }}"'",
             "download_url": {
               "windows": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.exe",
               "macos": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.dmg"
@@ -82,27 +99,7 @@ jobs:
         with:
           name: update_metadata
           path: latest_version.json
-
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: |
-            dist/*.exe
-            dist/*.dmg
-            latest_version.json
-          tag: ${{ github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: "PostFlow-${{ github.ref_name }}"
-          
-      - name: Commit and Push Updated VERSION File
-        if: always()
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add VERSION
-          git commit -m "Update VERSION file to ${{ env.VERSION }}"
-          git push
-
+       
       - name: Build application with PyInstaller
         shell: bash
         env:
@@ -163,6 +160,15 @@ jobs:
           fi
         shell: bash
 
+      - name: Commit and Push Updated VERSION File
+        if: always()
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add VERSION
+          git commit -m "Update VERSION file to ${{ env.VERSION }}"
+          git push
+
   release:
     name: Create GitHub Release
     needs: build
@@ -179,9 +185,22 @@ jobs:
           artifacts: |
             release-artifacts/postflow-macos-latest/*.dmg
             release-artifacts/postflow-windows-latest/*.exe
+            latest_version.json
           tag: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "PostFlow-${{ github.ref_name }}"
           body: |
             ## Changes in this release
             Add your release notes here.
+
+
+        #     - name: Create GitHub Release
+        # uses: ncipollo/release-action@v1
+        # with:
+        #   artifacts: |
+        #     dist/*.exe
+        #     dist/*.dmg
+        #     latest_version.json
+        #   tag: ${{ github.ref_name }}
+        #   token: ${{ secrets.GITHUB_TOKEN }}
+        #   name: "PostFlow-${{ github.ref_name }}"
