@@ -614,6 +614,10 @@ class CSMTab(QWidget):
             capstone_df["Destination Name*"].str.contains(r"SCF-MID ISLAND", case=False, na=False),
             ["Order Type*", "Reference 2"]
             ] = [504, "CBAT99"]
+            capstone_df.loc[
+            capstone_df["Order Type*"].astype(str).str.contains(r"504", case=False, na=False),
+            ["Destination Name*"]
+            ] = ["SCF-MID ISLAND         NY"]
             # Drop rows where 'Parcel Barcode' starts with "11"
             capstone_df = capstone_df[~capstone_df["Parcel Barcode"].astype(str).str.startswith("11", na=False)]
 
@@ -649,26 +653,20 @@ class CSMTab(QWidget):
                 # remote_dir = "/Capstone"
 
                 
-                host = os.getenv("HOSTNAME")
-                username = os.getenv("FTP_USERNAME")
-                password = os.getenv("FTP_SECRET")
-                remote_dir = os.getenv("REMOTEDIR")
-                port= int(os.getenv("PORT", 22))
+                # host = os.getenv("HOSTNAME")
+                # username = os.getenv("FTP_USERNAME")
+                # password = os.getenv("FTP_SECRET")
+                # remote_dir = os.getenv("REMOTEDIR")
+                # port= int(os.getenv("PORT", 22))
 
-                print('Rocket Fuel')
-                print(username)
-                print(host)
-                print(password)
+                # print('Rocket Fuel')
+                # print(username)
+                # print(host)
+                # print(password)
 
 
-                result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
-            #     result = upload_to_ftps(file_path, 
-            #    "cba.sharefileftp.com", 
-            #    "cba/jjoseph@cbaol.com", 
-            #    "JimelJoseph@15951", 
-            #    "/Capstone", 
-            #    990)
-                print(result)
+                # result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
+                # print(result)
 
                
                     

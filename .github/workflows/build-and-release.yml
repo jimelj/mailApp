@@ -61,6 +61,48 @@ jobs:
         run: | 
           echo "Version determined: ${{ env.VERSION }}"
 
+      - name: Update VERSION file
+        run: |
+          echo "${{ github.ref_name }}" > VERSION
+          echo "Updated VERSION file to: ${{ github.ref_name }}"
+
+      - name: Generate Update Metadata
+        run: |
+          echo '{
+            "version": "${{ github.ref_name }}",
+            "changelog": "Bug fixes and improvements.",
+            "download_url": {
+              "windows": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.exe",
+              "macos": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.dmg"
+            }
+          }' > latest_version.json
+
+      - name: Upload Update Metadata
+        uses: actions/upload-artifact@v3
+        with:
+          name: update_metadata
+          path: latest_version.json
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            dist/*.exe
+            dist/*.dmg
+            latest_version.json
+          tag: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: "PostFlow-${{ github.ref_name }}"
+          
+      - name: Commit and Push Updated VERSION File
+        if: always()
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add VERSION
+          git commit -m "Update VERSION file to ${{ env.VERSION }}"
+          git push
+
       - name: Build application with PyInstaller
         shell: bash
         env:

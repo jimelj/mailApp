@@ -10,8 +10,11 @@ import pandas as pd
 from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
+from update import UpdateApp
 from util import process_zip_name
 import stat
+import requests
+
 # import psutil  # For checking and closing open file handles
 from time import sleep
 import fitz
@@ -217,6 +220,10 @@ __version__ = get_version()
 
 # Print version for confirmation
 print(f"App Version: {__version__}")
+
+updater = UpdateApp(__version__)
+updater.check_for_updates()
+
 
 # Set high DPI scaling policy
 QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
