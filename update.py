@@ -53,6 +53,7 @@ class UpdateApp:
                 for chunk in response.iter_content(chunk_size=8192):
                     file.write(chunk)
             print(f"Downloaded update to: {filename}")
+            print(f"Downloading from {url} to {filename}")
             self.install_update(filename)
         except Exception as e:
             print(f"Failed to download update: {e}")
