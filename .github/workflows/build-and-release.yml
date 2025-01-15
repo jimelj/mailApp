@@ -80,10 +80,8 @@ jobs:
             changelog=$(git log --pretty=format:"- %s (%h)" --reverse)
           fi
 
-          #  Escape newlines for $GITHUB_ENV
-            changelog="${changelog//'%'/'%25'}"
-            changelog="${changelog//$'\n'/'%0A'}"
-            changelog="${changelog//$'\r'/'%0D'}"
+            changelog="${changelog//$'\n'/\\n}"
+
 
             echo "changelog=$changelog" >> $GITHUB_ENV
             echo "Changelog:"
@@ -96,7 +94,7 @@ jobs:
             "changelog": "'"${{ env.changelog }}"'",
             "download_url": {
               "windows": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.exe",
-              "macos": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.dmg"
+              "darwin": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/PostFlow-${{ github.ref_name }}.dmg"
             }
           }' > latest_version.json
 
