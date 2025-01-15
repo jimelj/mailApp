@@ -1,8 +1,8 @@
 {
-  "version": "v1.2.2",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.2.1 (207601a)\n  - - update (de59f40)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (49a2025)",
+  "version": "v1.2.3",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.2.2 (a6599f8)\n  - - update (836ab23)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.2/PostFlow-v1.2.2.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.2/PostFlow-v1.2.2.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.3/PostFlow-v1.2.3.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.3/PostFlow-v1.2.3.dmg"
   }
 }
