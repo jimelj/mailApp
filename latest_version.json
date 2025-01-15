@@ -1,12 +1,8 @@
 {
   "version": "v1.1.6",
-<<<<<<< Updated upstream
-  "changelog": "  - - Update VERSION and latest_version.json to v1.1.5 (8eb6dad)\n  - - Update VERSION and latest_version.json to v1.1.5 (ec4390d)\n  - - dealing with git merge issue (e6ed0d9)\n  - - bug fixes (a84a718)\n  - - Update latest_version.json (0d27c88)\n  - - Update VERSION (c0861d7)\n  - - Update latest_version.json (53ab8ad)\n  - - updating to v1.1.6 (744eacc)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (1e5e9ac)",
-=======
   "changelog": "
   - - Update VERSION and latest_version.json to v1.1.5 (8eb6dad)\n  - - Update VERSION and latest_version.json to v1.1.5 (ec4390d)\n  - - dealing with git merge issue (e6ed0d9)\n  - - bug fixes (a84a718)\n  - - Update latest_version.json (0d27c88)\n  - - Update VERSION (c0861d7)\n  - - Update latest_version.json (53ab8ad)\n  - - updating to v1.1.6 (744eacc)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (1e5e9ac)
 ",
->>>>>>> Stashed changes
   "download_url": {
     "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.6/PostFlow-v1.1.6.exe",
     "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.1.6/PostFlow-v1.1.6.dmg"

@@ -89,6 +89,7 @@ jobs:
 
       - name: Generate Update Metadata
         run: |
+          changelog=$(echo "${{ env.changelog }}" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo '{
             "version": "${{ github.ref_name }}",
             "changelog": "'"${{ env.changelog }}"'",
