@@ -29,7 +29,9 @@ jobs:
       - name: Create .env file from secret
         env:
           POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
-        run: echo "$POSTFLOW_ENV_CONTENT" > .env
+        run: |
+          echo "$POSTFLOW_ENV_CONTENT" > .env
+          echo .env
 
       - name: Install dependencies
         run: |
