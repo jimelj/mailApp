@@ -256,6 +256,13 @@ class MainTab(QWidget):
         self.zip_dropdown.currentIndexChanged.connect(self.select_zip_file)
         self.layout.addWidget(self.zip_dropdown)
 
+        # Date Display Label (initially hidden)
+        # Add date label for top-right display
+        self.date_label = QLabel(parent=self)  # Use the parent main window
+        self.date_label.setStyleSheet("color: green; font-size: 36px; font-weight: bold;")
+        self.date_label.setAlignment(Qt.AlignRight)
+        self.date_label.hide()  # Hide initially
+
         # # Button Styling
         # button_style = """
         #     QPushButton {
@@ -292,6 +299,11 @@ class MainTab(QWidget):
         from util import fetch_latest_ftp_files  # Assuming this function exists in util.py
 
         try:
+            # Clear the dropdown before adding new items
+            self.zip_dropdown.clear()
+
+            # Add the default option
+            self.zip_dropdown.addItem("Please select a MailDat file")
             zip_files = fetch_latest_ftp_files()  # This should return a list of ZIP filenames
             self.zip_dropdown.addItems(zip_files)
             self.feedback_label.setText("Fetched latest ZIP files successfully!")
@@ -303,6 +315,9 @@ class MainTab(QWidget):
     def select_zip_file(self):
         """Handle ZIP file selection and reset data."""
         selected_file = self.zip_dropdown.currentText()
+        if selected_file == "Please select a MailDat file":
+            return  # Do nothing if the default option is selected
+
         if selected_file:
             try:
                 # Download and process the selected ZIP file
@@ -318,6 +333,29 @@ class MainTab(QWidget):
                 date_from_file = self.extract_date_from_file(local_file_path)
                 self.feedback_label.setText(f"Loaded data from {selected_file} (IHD: {date_from_file})")
                 self.feedback_label.setStyleSheet("color: green;")
+                # Define the extracted path
+                extracted_path = "data/extracted"
+
+                # Load SkidTags.pdf if it exists
+                skid_tags_pdf_path = os.path.join(extracted_path, "Reports", "SkidTags.pdf")
+                if os.path.exists(skid_tags_pdf_path):
+                    self.skid_tags_tab.load_pdf(skid_tags_pdf_path)
+                    self.feedback_label.setText("SkidTags.pdf loaded successfully!")
+                    self.feedback_label.setStyleSheet("color: green;")
+                else:
+                    self.feedback_label.setText("SkidTags.pdf not found in the extracted ZIP file.")
+                    self.feedback_label.setStyleSheet("color: red;")
+
+                # Load TrayTags.pdf if it exists
+                tray_tags_pdf_path = os.path.join(extracted_path, "Reports", "TrayTags.pdf")
+                if os.path.exists(tray_tags_pdf_path):
+                    self.tray_tags_tab.load_pdf(tray_tags_pdf_path)
+                    self.feedback_label.setText("TrayTags.pdf loaded successfully!")
+                    self.feedback_label.setStyleSheet("color: green;")
+                else:
+                    self.feedback_label.setText("TrayTags.pdf not found in the extracted ZIP file.")
+                    self.feedback_label.setStyleSheet("color: red;")
+
             except Exception as e:
                 self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
@@ -340,12 +378,7 @@ class MainTab(QWidget):
     #     else:
     #         print(f"No directory to clean: {extracted_directory}")
 
-    # Date Display Label (initially hidden)
-    # Add date label for top-right display
-        self.date_label = QLabel(parent=self)  # Use the parent main window
-        self.date_label.setStyleSheet("color: green; font-size: 36px; font-weight: bold;")
-        self.date_label.setAlignment(Qt.AlignRight)
-        self.date_label.hide()  # Hide initially
+
 
     def resizeEvent(self, event):
         """Reposition the date label on window resize."""

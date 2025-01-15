@@ -113,33 +113,61 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         print(f"Error during SFTP upload: {e}")
 
 
+import pycurl
+from io import BytesIO
+import os
+
+
 def fetch_latest_ftp_files():
     """
-    Fetch the latest 6 ZIP files from the FTP server.
+    Fetch the latest 6 ZIP files from an FTPS server using PycURL.
     """
-    import ftplib
-
     ftp_host = os.getenv("HOSTNAME1")
     ftp_user = os.getenv("FTP_USERNAME1")
     ftp_pass = os.getenv("FTP_SECRET1")
     remote_dir = os.getenv("REMOTEDIR1")
+    port = os.getenv("PORT1", 990)
 
     try:
-        ftp = ftplib.FTP(ftp_host)
-        ftp.login(ftp_user, ftp_pass)
-        ftp.cwd(remote_dir)
+        buffer = BytesIO()
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/"
+        print(f"DEBUG: FTP URL: {ftps_url}")
 
-        files = ftp.nlst()  # List all files
+        c = pycurl.Curl()
+        c.setopt(c.URL, ftps_url)
+        c.setopt(c.USERPWD, f"{ftp_user}:{ftp_pass}")
+        c.setopt(c.WRITEDATA, buffer)
+        c.setopt(c.SSL_VERIFYPEER, 0)  # Disable peer verification for testing
+        c.setopt(c.SSL_VERIFYHOST, 0)  # Disable host verification for testing
+        c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)  # Enable implicit FTPS
+        c.setopt(c.FTP_USE_EPSV, 1)  # Enable passive mode
+        c.setopt(c.VERBOSE, True)  # Enable verbose output for debugging
+        c.setopt(c.CUSTOMREQUEST, "NLST")  # Use NLST to list file names
+
+        c.perform()
+
+        # Check the response code
+        response_code = c.getinfo(c.RESPONSE_CODE)
+        if response_code != 226:  # 226 is the success code for directory listing
+            raise RuntimeError(f"Unexpected response code: {response_code}")
+
+        c.close()
+
+        # Decode the response and parse file names
+        response = buffer.getvalue().decode("utf-8")
+        print(f"DEBUG: FTP Response:\n{response}")
+        files = response.splitlines()
         zip_files = [f for f in files if f.endswith(".zip")]
-        zip_files.sort(reverse=True)  # Assuming filenames indicate recency
-        ftp.quit()
-        return zip_files[:6]  # Return the latest 6 files
-    except Exception as e:
+        zip_files.sort(reverse=True)  # Sort to get the latest files first
+        return zip_files[:6]  # Return the latest 6 ZIP files
+
+    except pycurl.error as e:
         raise RuntimeError(f"Failed to fetch files from FTP: {e}")
+
 
 def download_file_from_ftp(filename):
     """
-    Download a specific ZIP file from the FTP server.
+    Download a specific ZIP file from the FTPS server using PycURL.
 
     Args:
         filename (str): The name of the file to download.
@@ -147,28 +175,46 @@ def download_file_from_ftp(filename):
     Returns:
         str: The local path to the downloaded file.
     """
-    import ftplib
-
     ftp_host = os.getenv("HOSTNAME1")
     ftp_user = os.getenv("FTP_USERNAME1")
     ftp_pass = os.getenv("FTP_SECRET1")
-    remote_dir = os.getenv("REMOTEDIR1")
+    remote_dir = os.getenv("REMOTEDIR1").rstrip("/")  # Remove trailing slash if present
+    port = os.getenv("PORT1", 990)
     local_dir = "data"
 
     try:
         os.makedirs(local_dir, exist_ok=True)
         local_path = os.path.join(local_dir, filename)
 
-        ftp = ftplib.FTP(ftp_host)
-        ftp.login(ftp_user, ftp_pass)
-        ftp.cwd(remote_dir)
+        # Encode the file name to handle special characters
+        encoded_filename = quote(filename)
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/{encoded_filename}"
+        print(f"DEBUG: FTP URL for download: {ftps_url}")
 
         with open(local_path, "wb") as f:
-            ftp.retrbinary(f"RETR {filename}", f.write)
+            c = pycurl.Curl()
+            c.setopt(c.URL, ftps_url)
+            c.setopt(c.USERPWD, f"{ftp_user}:{ftp_pass}")
+            c.setopt(c.WRITEDATA, f)
+            c.setopt(c.SSL_VERIFYPEER, 0)  # Disable peer verification for testing
+            c.setopt(c.SSL_VERIFYHOST, 0)  # Disable host verification for testing
+            c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)  # Enable implicit FTPS
+            c.setopt(c.FTP_USE_EPSV, 1)  # Enable passive mode
+            c.setopt(c.VERBOSE, True)  # Enable verbose output for debugging
 
-        ftp.quit()
+            c.perform()
+
+            # Check the response code
+            response_code = c.getinfo(c.RESPONSE_CODE)
+            if response_code not in (226, 250):  # 226 and 250 indicate successful transfers
+                raise RuntimeError(f"Unexpected response code: {response_code}")
+
+            c.close()
+
+        print(f"DEBUG: File downloaded successfully to {local_path}")
         return local_path
-    except Exception as e:
+
+    except pycurl.error as e:
         raise RuntimeError(f"Failed to download file {filename} from FTP: {e}")
 # def upload_to_sftp(file_path, sftp_host, sftp_user, sftp_password, remote_dir="/"):
 #     """
