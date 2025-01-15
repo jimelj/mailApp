@@ -36,7 +36,7 @@ jobs:
       - name: Debug Environment Variables
         if: always()
         run: printenv
-        
+
       - name: Install dependencies
         run: |
           # Install base requirements
@@ -127,7 +127,7 @@ jobs:
                 --icon=icon.icns \
                 --name=PostFlow-${{ env.VERSION }} main.py
             elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-              pyinstaller --onefile --noconsole \
+              pyinstaller --onefile \
                 --add-data ".env;." \
                 --add-data "facilityReport.xlsx;." \
                 --add-data "Zips by Address File Group.xlsx;." \
