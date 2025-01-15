@@ -193,28 +193,29 @@ def get_version():
                 print(f"DEBUG: Retrieved version from environment variable: {version}")
                 return version
 
-        # Try to get the version from Git tags
-        version = subprocess.check_output(
-            ["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL
-        )
-        print(f"DEBUG: Retrieved version from Git: {version.decode('utf-8').strip()}")
-        return version.decode("utf-8").strip()
+        # # Try to get the version from Git tags
+        # version = subprocess.check_output(
+        #     ["git", "describe", "--tags", "--abbrev=0"], stderr=subprocess.DEVNULL
+        # )
+        # print(f"DEBUG: Retrieved version from Git: {version.decode('utf-8').strip()}")
+        # return version.decode("utf-8").strip()
     except Exception as git_error:
         print(f"DEBUG: Git version retrieval failed: {git_error}")
 
-        # Fallback to VERSION file
-        try:
-            version_file_path = os.path.join(
-                sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(__file__),
-                "VERSION",
-            )
-            with open(version_file_path, "r") as file:
-                version = file.read().strip()
-                print(f"DEBUG: Retrieved version from VERSION file: {version}")
-                return version
-        except FileNotFoundError as file_error:
-            print(f"DEBUG: VERSION file not found: {file_error}")
-            return "Unknown Version"
+    # Fallback to VERSION file
+    try:
+        version_file_path = os.path.join(
+            sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(__file__),
+            "VERSION",
+        )
+        with open(version_file_path, "r") as file:
+            version = file.read().strip()
+            print(f"DEBUG: Retrieved version from VERSION file: {version}")
+            return version
+    except FileNotFoundError as file_error:
+        print(f"DEBUG: VERSION file not found: {file_error}")
+        return "Unknown Version"
+
 
 __version__ = get_version()
 
