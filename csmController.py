@@ -6,7 +6,7 @@ import zipfile
 from tabulate import tabulate
 import platform
 from openpyxl import load_workbook
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog, QHBoxLayout,QMessageBox
 import webbrowser
 from util import upload_to_ftps
 from dotenv import load_dotenv
@@ -625,6 +625,31 @@ class CSMTab(QWidget):
             file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", capstone_report_name, "CSV Files (*.csv)")
             if file_path:
                 capstone_df.to_csv(file_path, index=False)
+
+                # Ask user whether to transmit the file to FTP
+                reply = QMessageBox.question(
+                    self,
+                    "Transmit File",
+                    "Do you want to transmit the Capstone report to the FTP server?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+
+                if reply == QMessageBox.Yes:
+                    # Transmit to FTP if user agrees
+                    try:
+                        print("PARTY UP IN HERE!")
+                        host = os.getenv("HOSTNAME")
+                        username = os.getenv("FTP_USERNAME")
+                        password = os.getenv("FTP_SECRET")
+                        remote_dir = os.getenv("REMOTEDIR")
+                        port = int(os.getenv("PORT", 22))
+
+                        result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
+                        QMessageBox.information(self, "FTP Upload", f"File transmitted successfully: {result}")
+                    except Exception as e:
+                        QMessageBox.critical(self, "FTP Upload Failed", f"Error transmitting file to FTP: {e}")
+                else:
+                    QMessageBox.information(self, "Transmit Skipped", "File transmission skipped.")
 
                 # # Adjust column widths using openpyxl
                 # workbook = load_workbook(file_path)

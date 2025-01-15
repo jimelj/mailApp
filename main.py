@@ -347,7 +347,12 @@ class MainTab(QWidget):
                 self.date_label.show()  # Show the date label
                 self.resizeEvent(None)  # Reposition the label after updating
 
-
+                zip_base_name = os.path.splitext(selected_file)[0]
+                # Process the ZIP name
+                processed_zip_name = process_zip_name(zip_base_name)
+                print(f"Processed ZIP Name: {processed_zip_name}")
+                # Pass the processed ZIP name to the CSMTab instance
+                self.csm_tab.set_processed_zip_name(processed_zip_name)
 
                 # Define the extracted path
                 extracted_path = "data/extracted"
