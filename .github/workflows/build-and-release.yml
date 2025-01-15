@@ -33,6 +33,10 @@ jobs:
           echo "$POSTFLOW_ENV_CONTENT" > .env
           echo .env
 
+      - name: Debug Environment Variables
+        if: always()
+        run: printenv
+        
       - name: Install dependencies
         run: |
           # Install base requirements

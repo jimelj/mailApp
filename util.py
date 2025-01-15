@@ -2,7 +2,6 @@ import pycurl
 from io import BytesIO
 import paramiko
 import os
-import os
 import shutil
 from urllib.parse import quote
 
