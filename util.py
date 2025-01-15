@@ -128,7 +128,7 @@ def fetch_latest_ftp_files():
     ftp_user = os.getenv("FTP_USERNAME1")
     ftp_pass = os.getenv("FTP_SECRET1")
     remote_dir = os.getenv("REMOTEDIR1")
-    port = os.getenv("PORT1", 990)
+    port = int(os.getenv("PORT1", 990))
 
     try:
         buffer = BytesIO()
