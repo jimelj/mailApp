@@ -113,6 +113,63 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         print(f"Error during SFTP upload: {e}")
 
 
+def fetch_latest_ftp_files():
+    """
+    Fetch the latest 6 ZIP files from the FTP server.
+    """
+    import ftplib
+
+    ftp_host = os.getenv("HOSTNAME1")
+    ftp_user = os.getenv("FTP_USERNAME1")
+    ftp_pass = os.getenv("FTP_SECRET1")
+    remote_dir = os.getenv("REMOTEDIR1")
+
+    try:
+        ftp = ftplib.FTP(ftp_host)
+        ftp.login(ftp_user, ftp_pass)
+        ftp.cwd(remote_dir)
+
+        files = ftp.nlst()  # List all files
+        zip_files = [f for f in files if f.endswith(".zip")]
+        zip_files.sort(reverse=True)  # Assuming filenames indicate recency
+        ftp.quit()
+        return zip_files[:6]  # Return the latest 6 files
+    except Exception as e:
+        raise RuntimeError(f"Failed to fetch files from FTP: {e}")
+
+def download_file_from_ftp(filename):
+    """
+    Download a specific ZIP file from the FTP server.
+
+    Args:
+        filename (str): The name of the file to download.
+
+    Returns:
+        str: The local path to the downloaded file.
+    """
+    import ftplib
+
+    ftp_host = os.getenv("HOSTNAME1")
+    ftp_user = os.getenv("FTP_USERNAME1")
+    ftp_pass = os.getenv("FTP_SECRET1")
+    remote_dir = os.getenv("REMOTEDIR1")
+    local_dir = "data"
+
+    try:
+        os.makedirs(local_dir, exist_ok=True)
+        local_path = os.path.join(local_dir, filename)
+
+        ftp = ftplib.FTP(ftp_host)
+        ftp.login(ftp_user, ftp_pass)
+        ftp.cwd(remote_dir)
+
+        with open(local_path, "wb") as f:
+            ftp.retrbinary(f"RETR {filename}", f.write)
+
+        ftp.quit()
+        return local_path
+    except Exception as e:
+        raise RuntimeError(f"Failed to download file {filename} from FTP: {e}")
 # def upload_to_sftp(file_path, sftp_host, sftp_user, sftp_password, remote_dir="/"):
 #     """
 #     Uploads a file to an SFTP server.
