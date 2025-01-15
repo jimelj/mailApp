@@ -1,8 +1,8 @@
 {
-  "version": "v1.2.0",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.1.9 (4e9c254)\n  - - fixing port info (293cf10)",
+  "version": "v1.2.1",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.2.0 (da91b66)\n  - - fixing windows version (0053d90)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.0/PostFlow-v1.2.0.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.0/PostFlow-v1.2.0.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.1/PostFlow-v1.2.1.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.1/PostFlow-v1.2.1.dmg"
   }
 }
