@@ -33,9 +33,10 @@ jobs:
           echo "$POSTFLOW_ENV_CONTENT" > .env
           echo .env
 
-      - name: Debug Environment Variables
-        if: always()
-        run: printenv
+      - name: Verify .env File Creation
+        run: |
+          echo "Checking .env content..."
+          cat .env
 
       - name: Install dependencies
         run: |
@@ -136,6 +137,13 @@ jobs:
                 --icon=icon.ico \
                 --name=PostFlow-${{ env.VERSION }} main.py
             fi
+
+      - name: Verify Bundled Files
+        run: |
+          echo "Listing dist directory:"
+          ls dist
+          echo "Verifying .env in bundled directory:"
+          find dist -name ".env"
 
       - name: Verify build artifacts
         run: |
