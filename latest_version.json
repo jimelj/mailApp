@@ -1,8 +1,8 @@
 {
-  "version": "v1.1.8",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.1.7 (5841b39)\n  - - setting up dropdown (e4909c4)\n  - - implemented dropdown menu (8988ca9)\n  - - added reset capabilities (1026f18)",
+  "version": "v1.1.9",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.1.8 (2869470)\n  - -  added user prompt capstone report (c3b80bd)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.8/PostFlow-v1.1.8.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.1.8/PostFlow-v1.1.8.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.9/PostFlow-v1.1.9.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.1.9/PostFlow-v1.1.9.dmg"
   }
 }
