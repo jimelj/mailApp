@@ -207,3 +207,21 @@ class PrintSkidTagsTab(QWidget):
         """Display an error message."""
         print(message)
         self.page_display.setText(message)
+
+    def clear_pdf(self):
+        """Clear the displayed PDF in the Skid Tags tab."""
+        self.page_display.clear()  # Clear the PDF display area
+        self.page_display.setText("No PDF loaded")  # Reset to the default message
+        self.page_label.setText("Page 0 of 0")  # Reset the page label
+        self.back_button.setEnabled(False)  # Disable the Back button
+        self.next_button.setEnabled(False)  # Disable the Next button
+        self.pdf_path = None  # Clear the loaded PDF path
+        self.doc = None  # Clear the document
+        self.current_page_index = 0
+        self.total_pages = 0
+        print("Skid Tags tab reset.")
+
+    def reset(self):
+        """Clear the displayed PDF and reset the tab."""
+        self.clear_pdf()  # Call the clear_pdf method to reset the display
+        print("PrintTrayTagsTab reset.")

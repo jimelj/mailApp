@@ -2,6 +2,8 @@ import pycurl
 from io import BytesIO
 import paramiko
 import os
+import os
+import shutil
 from urllib.parse import quote
 
 # def upload_to_ftps(file_path, host, username, password, remote_dir, port):
@@ -280,3 +282,24 @@ def process_zip_name(zip_name):
     if zip_name.lower().startswith("maildate "):
         return zip_name[9:].strip()  # Remove 'MailDate ' (9 characters)
     return zip_name.strip()
+
+def clean_backend_files():
+    """Delete all backend files and folders to reset the application state."""
+    paths_to_clean = [
+        "data/extracted",         # Folder where ZIP files are extracted
+        "data/parsed_csm.csv",    # Parsed CSM data
+    ]
+    
+    for path in paths_to_clean:
+        if os.path.exists(path):
+            try:
+                if os.path.isfile(path):
+                    os.remove(path)  # Remove file
+                    print(f"Deleted file: {path}")
+                elif os.path.isdir(path):
+                    shutil.rmtree(path)  # Remove directory
+                    print(f"Deleted directory: {path}")
+            except Exception as e:
+                print(f"Error deleting {path}: {e}")
+        else:
+            print(f"Path does not exist: {path}")

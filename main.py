@@ -11,7 +11,7 @@ from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab f
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
 from update import UpdateApp
-from util import process_zip_name
+from util import clean_backend_files, process_zip_name
 import stat
 import requests
 
@@ -313,6 +313,7 @@ class MainTab(QWidget):
             self.feedback_label.setStyleSheet("color: red;")
 
     def select_zip_file(self):
+        self.reset_all_tabs()
         """Handle ZIP file selection and reset data."""
         selected_file = self.zip_dropdown.currentText()
         if selected_file == "Please select a MailDat file":
@@ -320,6 +321,12 @@ class MainTab(QWidget):
 
         if selected_file:
             try:
+                # Reset all tabs before processing the new ZIP file
+                #  # Reset all tabs
+                # self.csm_tab.reset()
+                # self.skid_tags_tab.reset()
+                # self.tray_tags_tab.reset()
+                # print("All tabs reset.")
                 # Download and process the selected ZIP file
                 from util import download_file_from_ftp  # Assuming this function exists in util.py
 
@@ -333,6 +340,15 @@ class MainTab(QWidget):
                 date_from_file = self.extract_date_from_file(local_file_path)
                 self.feedback_label.setText(f"Loaded data from {selected_file} (IHD: {date_from_file})")
                 self.feedback_label.setStyleSheet("color: green;")
+
+                # Update and show the date label
+                self.date_label.setText(f"IHD: {date_from_file}")
+                self.date_label.adjustSize()  # Adjust size for text
+                self.date_label.show()  # Show the date label
+                self.resizeEvent(None)  # Reposition the label after updating
+
+
+
                 # Define the extracted path
                 extracted_path = "data/extracted"
 
@@ -359,6 +375,23 @@ class MainTab(QWidget):
             except Exception as e:
                 self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
+
+    def reset_all_tabs(self):
+        clean_backend_files()
+
+        """Reset all tabs to ensure no lingering data remains."""
+        if hasattr(self, 'csm_tab'):
+            self.csm_tab.reset()
+        if hasattr(self, 'skid_tags_tab'):
+            self.skid_tags_tab.reset()
+        if hasattr(self, 'tray_tags_tab'):
+            self.tray_tags_tab.reset()
+        print("All tabs reset.")
+
+        # Hide the date label
+        self.date_label.setText("")
+        self.date_label.hide()
+        
 
     def extract_date_from_file(self, file_path):
         """Extract the date from the file name in MM-DD-YY format."""

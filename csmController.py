@@ -368,7 +368,6 @@ class CSMTab(QWidget):
         self.capstone_button.clicked.connect(self.generate_capstone_report)
 
 
-        # Button Styling
         button_style = """
             QPushButton {
                 background-color: #007BFF;
@@ -669,7 +668,14 @@ class CSMTab(QWidget):
                 # print(result)
 
                
-                    
+                   
 
         except Exception as e:
             print(f"Error creating Capstone report: {e}")
+
+    def reset(self):
+        """Clear all data and reset the tab."""
+        self.df_filtered = pd.DataFrame()  # Clear the DataFrame
+        self.update_data(self.df_filtered)  # Refresh the display
+        print("CSMTab reset.")     
+
