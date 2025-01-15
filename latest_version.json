@@ -1,8 +1,8 @@
 {
-  "version": "v1.1.9",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.1.8 (2869470)\n  - -  added user prompt capstone report (c3b80bd)",
+  "version": "v1.2.0",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.1.9 (4e9c254)\n  - - fixing port info (293cf10)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.1.9/PostFlow-v1.1.9.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.1.9/PostFlow-v1.1.9.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.0/PostFlow-v1.2.0.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.0/PostFlow-v1.2.0.dmg"
   }
 }
