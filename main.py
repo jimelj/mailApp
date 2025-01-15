@@ -170,7 +170,10 @@ if os.path.exists(env_file_path):
 else:
     print("Warning: .env file not found. Using default environment variables.")
 
-
+import os
+print("DEBUG: All environment variables")
+for key, value in os.environ.items():
+    print(f"{key}: {value}")
 # def get_version():
 #     # Try to get version from Git tags
 #     try:
