@@ -385,8 +385,9 @@ class MainTab(QWidget):
                 self.feedback_label.setStyleSheet("color: red;")
 
     def reset_all_tabs(self):
+        data_path = "data/extracted"
         clean_backend_files()
-        unlock_and_delete_file("data/extracted")
+        unlock_and_delete_file(data_path)
 
         """Reset all tabs to ensure no lingering data remains."""
         if hasattr(self, 'csm_tab'):
