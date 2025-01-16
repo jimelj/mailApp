@@ -304,48 +304,81 @@ def clean_backend_files():
             print(f"Path does not exist: {path}")
 
     
-    import os
+
 import psutil
 import logging
 
+import tempfile
+
 logging.basicConfig(level=logging.DEBUG)
 
-def unlock_and_delete_file(file_path):
-    """Unlock and delete a file, even if it's locked by a process."""
-    try:
-        # Check if the file exists
-        if os.path.exists(file_path):
-            # Find and terminate processes holding the file lock
-            for proc in psutil.process_iter(['pid', 'name']):
-                try:
-                    for file in proc.open_files():
-                        if file.path == file_path:
-                            logging.debug(f"Terminating process {proc.pid} holding lock on {file_path}")
-                            proc.terminate()
-                            proc.wait(timeout=5)
-                except Exception as e:
-                    logging.error(f"Error handling process {proc.pid}: {e}")
-            
-            # Attempt to delete the file
-            os.unlink(file_path)
-            logging.info(f"Deleted file: {file_path}")
-        else:
-            logging.warning(f"File {file_path} does not exist.")
-    except Exception as e:
-        logging.error(f"Failed to delete {file_path}: {e}")
+from datetime import datetime
 
-def delete_files_in_directory(directory):
-    """Delete all files in a directory, handling locked files."""
+logging.basicConfig(level=logging.DEBUG)
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+def close_and_remove_pdf(file_path):
+    """Ensure the PDF file is closed before deletion."""
+    try:
+        if os.path.exists(file_path) and file_path.lower().endswith(".pdf"):
+            with fitz.open(file_path) as doc:  # Use context manager to ensure proper closure
+                logging.debug(f"Closed PDF file: {file_path}")
+    except Exception as e:
+        logging.error(f"Error closing or handling PDF {file_path}: {e}")
+
+
+def move_and_rename_locked_file(file_path, locked_files_dir):
+    """Move and rename a locked file to the locked_files directory."""
+    os.makedirs(locked_files_dir, exist_ok=True)  # Ensure the locked files directory exists
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Generate a timestamp
+    new_name = f"{os.path.basename(file_path)}_{timestamp}"  # Append timestamp to file name
+    temp_path = os.path.join(locked_files_dir, new_name)
+    try:
+        shutil.move(file_path, temp_path)
+        logging.debug(f"Moved and renamed locked file to: {temp_path}")
+    except Exception as e:
+        logging.error(f"Failed to move and rename locked file {file_path}: {e}")
+
+
+def clean_backend_files_with_move(directory):
+    """Cleans all files and subdirectories in a directory, moving and renaming locked files."""
+    locked_files_dir = os.path.join("data", "locked_files")  # Define the directory for locked files
+
     if os.path.exists(directory):
-        for file in os.listdir(directory):
-            file_path = os.path.join(directory, file)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                unlock_and_delete_file(file_path)
-            elif os.path.isdir(file_path):
+        logging.debug(f"Starting cleanup of directory: {directory}")
+        
+        for root, dirs, files in os.walk(directory, topdown=False):  # Bottom-up traversal
+            for file in files:
+                file_path = os.path.join(root, file)
                 try:
-                    os.rmdir(file_path)
-                    logging.info(f"Deleted directory: {file_path}")
+                    # If it's a PDF, ensure it's closed
+                    if file.lower().endswith(".pdf"):
+                        close_and_remove_pdf(file_path)
+
+                    os.unlink(file_path)  # Attempt to delete the file
+                    logging.debug(f"Deleted file: {file_path}")
                 except Exception as e:
-                    logging.error(f"Failed to delete directory {file_path}: {e}")
+                    logging.error(f"Failed to delete file {file_path}: {e}")
+                    move_and_rename_locked_file(file_path, locked_files_dir)  # Move and rename locked file
+
+            for dir_ in dirs:
+                dir_path = os.path.join(root, dir_)
+                try:
+                    os.rmdir(dir_path)  # Attempt to remove the directory
+                    logging.debug(f"Deleted directory: {dir_path}")
+                except Exception as e:
+                    logging.error(f"Failed to delete directory {dir_path}: {e}")
+
+        try:
+            os.rmdir(directory)  # Finally, remove the root directory
+            logging.debug(f"Deleted root directory: {directory}")
+        except Exception as e:
+            logging.error(f"Failed to delete root directory {directory}: {e}")
+
+        # Inform the user about moved and renamed locked files
+        if os.path.exists(locked_files_dir) and os.listdir(locked_files_dir):
+            logging.warning(f"Locked files moved to: {locked_files_dir}")
     else:
         logging.warning(f"Directory {directory} does not exist.")
