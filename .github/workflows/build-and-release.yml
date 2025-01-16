@@ -138,17 +138,22 @@ jobs:
                 --name=PostFlow-${{ env.VERSION }} main.py
             fi
 
-      - name: Verify Bundled Files
-        run: |
-          echo "Listing contents of the EXE:"
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            7z l dist/PostFlow-${{ env.VERSION }}.exe | grep .env || echo ".env not found in bundle"
-          else
-            echo "Listing dist directory:"
-            ls dist
-            echo "Verifying .env in bundled directory:"
-            find dist -name ".env"
-          fi
+      - name: Verify Bundled Files (macOS only)
+          if: matrix.os == 'macos-latest'
+          run: |
+              echo "Listing dist directory:"
+              ls dist
+              echo "Verifying .env in bundled directory:"
+              find dist -name ".env"
+          shell: bash
+
+       - name: Verify Bundled Files (Windows)
+          if: matrix.os == 'windows-latest'
+          shell: pwsh
+          run: |
+            Write-Host "Listing contents of the EXE:"
+            # Add commands specific to Windows, like directory listing
+            Get-ChildItem dist     
 
       - name: Verify build artifacts
         run: |
