@@ -11,7 +11,7 @@ from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab f
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
 from update import UpdateApp
-from util import clean_backend_files, process_zip_name
+from util import clean_backend_files, process_zip_name, unlock_and_delete_file
 import stat
 import requests
 
@@ -386,6 +386,7 @@ class MainTab(QWidget):
 
     def reset_all_tabs(self):
         clean_backend_files()
+        unlock_and_delete_file("data/extracted")
 
         """Reset all tabs to ensure no lingering data remains."""
         if hasattr(self, 'csm_tab'):

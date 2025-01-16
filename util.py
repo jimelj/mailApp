@@ -302,3 +302,50 @@ def clean_backend_files():
                 print(f"Error deleting {path}: {e}")
         else:
             print(f"Path does not exist: {path}")
+
+    
+    import os
+import psutil
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+def unlock_and_delete_file(file_path):
+    """Unlock and delete a file, even if it's locked by a process."""
+    try:
+        # Check if the file exists
+        if os.path.exists(file_path):
+            # Find and terminate processes holding the file lock
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    for file in proc.open_files():
+                        if file.path == file_path:
+                            logging.debug(f"Terminating process {proc.pid} holding lock on {file_path}")
+                            proc.terminate()
+                            proc.wait(timeout=5)
+                except Exception as e:
+                    logging.error(f"Error handling process {proc.pid}: {e}")
+            
+            # Attempt to delete the file
+            os.unlink(file_path)
+            logging.info(f"Deleted file: {file_path}")
+        else:
+            logging.warning(f"File {file_path} does not exist.")
+    except Exception as e:
+        logging.error(f"Failed to delete {file_path}: {e}")
+
+def delete_files_in_directory(directory):
+    """Delete all files in a directory, handling locked files."""
+    if os.path.exists(directory):
+        for file in os.listdir(directory):
+            file_path = os.path.join(directory, file)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                unlock_and_delete_file(file_path)
+            elif os.path.isdir(file_path):
+                try:
+                    os.rmdir(file_path)
+                    logging.info(f"Deleted directory: {file_path}")
+                except Exception as e:
+                    logging.error(f"Failed to delete directory {file_path}: {e}")
+    else:
+        logging.warning(f"Directory {directory} does not exist.")
