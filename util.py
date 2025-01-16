@@ -305,18 +305,14 @@ def clean_backend_files():
 
     
 
-import psutil
+
 import logging
 
-import tempfile
+
 
 logging.basicConfig(level=logging.DEBUG)
 
 from datetime import datetime
-
-logging.basicConfig(level=logging.DEBUG)
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 def close_and_remove_pdf(file_path):
