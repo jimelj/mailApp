@@ -140,10 +140,15 @@ jobs:
 
       - name: Verify Bundled Files
         run: |
-          echo "Listing dist directory:"
-          ls dist
-          echo "Verifying .env in bundled directory:"
-          find dist -name ".env"
+          echo "Listing contents of the EXE:"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            7z l dist/PostFlow-${{ env.VERSION }}.exe | grep .env || echo ".env not found in bundle"
+          else
+            echo "Listing dist directory:"
+            ls dist
+            echo "Verifying .env in bundled directory:"
+            find dist -name ".env"
+          fi
 
       - name: Verify build artifacts
         run: |
