@@ -197,7 +197,7 @@ class PrintTrayTagsTab(QWidget):
                 print(f"Attempting to print: {pdf_path_fixed}")
                 
                 # Attempt to print the PDF
-                os.startfile(pdf_path_fixed, "print")
+                os.startfile(pdf_path_fixed, "open")
             elif self.current_os == "Darwin":
                 # macOS: Use Preview for printing
                 os.system(f"open -a Preview \"{self.pdf_path}\"")
