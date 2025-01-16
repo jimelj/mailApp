@@ -26,12 +26,30 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Create .env file from secret
+      # - name: Create .env file from secret
+      #   env:
+      #     POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
+      #   run: |
+      #     echo "$POSTFLOW_ENV_CONTENT" > .env
+      #     echo .env
+
+            # Create .env file from secret for macOS
+      - name: Create .env file from secret (macOS)
+        if: matrix.os == 'macos-latest'
         env:
           POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
         run: |
           echo "$POSTFLOW_ENV_CONTENT" > .env
-          echo .env
+          echo "Created .env file for macOS"
+
+      # Create .env file from secret for Windows
+      - name: Create .env file from secret (Windows)
+        if: matrix.os == 'windows-latest'
+        env:
+          POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
+        run: |
+          echo "%POSTFLOW_ENV_CONTENT%" > .env
+          echo "Created .env file for Windows"
 
       - name: Verify .env File Creation
         run: |
