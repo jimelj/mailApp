@@ -1,6 +1,6 @@
 {
   "version": "v1.2.5",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.2.4 (ed11334)\n  - - update (2dc9316)\n  - - Update VERSION and latest_version.json to v1.2.5 (8351f49)\n  - - updating debug (d72b5b2)",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.2.4 (ed11334)\n  - - update (2dc9316)\n  - - Update VERSION and latest_version.json to v1.2.5 (8351f49)\n  - - updating debug (d72b5b2)\n  - - Update VERSION and latest_version.json to v1.2.5 (a5a1561)\n  - - update (d660a78)\n  - - update (e01212a)",
   "download_url": {
     "windows": "https://github.com/jimelj/mailApp/releases/download/v1.2.5/PostFlow-v1.2.5.exe",
     "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.2.5/PostFlow-v1.2.5.dmg"
