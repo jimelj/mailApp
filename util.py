@@ -1,3 +1,4 @@
+import fitz
 import pycurl
 from io import BytesIO
 import paramiko

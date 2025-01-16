@@ -148,7 +148,7 @@ jobs:
                 --icon=icon.icns \
                 --name=PostFlow-${{ env.VERSION }} main.py
             elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-              pyinstaller --onefile \
+              pyinstaller --onefile --noconsole \
                 --add-data ".env;." \
                 --add-data "facilityReport.xlsx;." \
                 --add-data "Zips by Address File Group.xlsx;." \

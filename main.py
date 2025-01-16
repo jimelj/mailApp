@@ -15,7 +15,6 @@ from util import clean_backend_files, clean_backend_files_with_move, process_zip
 import stat
 import requests
 
-# import psutil  # For checking and closing open file handles
 from time import sleep
 import fitz
 from pathlib import Path
