@@ -159,7 +159,7 @@ def fetch_latest_ftp_files():
         response = buffer.getvalue().decode("utf-8")
         print(f"DEBUG: FTP Response:\n{response}")
         files = response.splitlines()
-        zip_files = [f for f in files if f.endswith(".zip")]
+        zip_files = [f for f in files if f.lower().endswith(".zip")]
         zip_files.sort(reverse=True)  # Sort to get the latest files first
         return zip_files[:6]  # Return the latest 6 ZIP files
 
