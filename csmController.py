@@ -593,7 +593,9 @@ class CSMTab(QWidget):
                 "Order Type*": merged_df["ratedesc"].map(order_type_mapping),  # Populate with ratedesc
                 "Pieces": "",
                 "Weight": self.df_filtered["Total Weight"].str.replace(" LBS", "", regex=False),
-                "Pickup Date*": self.df_filtered["Scheduled Induction Start Date"] + " 3:00 AM",
+                "Pickup Date*": (
+                    pd.to_datetime(self.df_filtered["Scheduled Induction Start Date"]) + pd.Timedelta(days=1)
+                    ).dt.strftime("%Y-%m-%d") + " 3:00 AM",
                 "Driver ID": "",
                 "Order Comments": "",
                 "Parcel Barcode": self.df_filtered["Label: IM™ Container - Final"],
@@ -617,6 +619,10 @@ class CSMTab(QWidget):
             capstone_df["Order Type*"].astype(str).str.contains(r"504", case=False, na=False),
             ["Destination Name*"]
             ] = ["SCF-MID ISLAND         NY"]
+            capstone_df.loc[
+            capstone_df["Reference 2"].str.contains(r"CBATW1", case=False, na=False),
+            ["Order Type*"]
+            ] = [50]
             # Drop rows where 'Parcel Barcode' starts with "11"
             capstone_df = capstone_df[~capstone_df["Parcel Barcode"].astype(str).str.startswith("11", na=False)]
 
