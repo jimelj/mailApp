@@ -143,7 +143,7 @@ def fetch_latest_ftp_files():
         c.setopt(c.SSL_VERIFYHOST, 0)  # Disable host verification for testing
         c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)  # Enable implicit FTPS
         c.setopt(c.FTP_USE_EPSV, 1)  # Enable passive mode
-        c.setopt(c.VERBOSE, True)  # Enable verbose output for debugging
+        c.setopt(c.VERBOSE, False)  # Enable verbose output for debugging
         c.setopt(c.CUSTOMREQUEST, "NLST")  # Use NLST to list file names
 
         c.perform()

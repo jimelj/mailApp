@@ -9,8 +9,10 @@ from PySide6.QtGui import QPixmap, QImage
 class PrintSkidTagsTab(QWidget):
     """Tab for displaying and printing SkidTags.pdf with OS-specific behavior."""
 
-    def __init__(self):
+    def __init__(self, status_indicator):
         super().__init__()
+
+        self.status_indicator = status_indicator
 
         # Detect OS
         self.current_os = platform.system()
@@ -87,8 +89,11 @@ class PrintSkidTagsTab(QWidget):
         """Load the PDF file."""
         if not os.path.exists(pdf_path):
             self.show_error(f"PDF file not found: {pdf_path}")
+            self.status_indicator.set_status("Skid Tags", False)  # Red circle for Skid Tags
+        else: 
+            self.status_indicator.set_status("Skid Tags", True)  # Green circle for Skid Tags
             return
-
+        
         try:
             self.doc = fitz.open(pdf_path)
             self.pdf_path = pdf_path

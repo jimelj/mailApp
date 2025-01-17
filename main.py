@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen, QComboBox
 from PySide6.QtGui import QGuiApplication, QPixmap
 import pandas as pd
+from StatusIndicator import StatusIndicator
 from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
@@ -14,7 +15,6 @@ from update import UpdateApp
 from util import clean_backend_files, clean_backend_files_with_move, process_zip_name
 import stat
 import requests
-
 from time import sleep
 import fitz
 from pathlib import Path
@@ -235,11 +235,12 @@ QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundin
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
 
-    def __init__(self, csm_tab, skid_tags_tab, tray_tags_tab):
+    def __init__(self, status_indicator, csm_tab, skid_tags_tab, tray_tags_tab, ):
         super().__init__()
 
         self.setMinimumSize(1024, 768)  # Set a minimum size for the window
         self.setGeometry(100, 100, 1200, 800)  # Position and initial size
+        self.status_indicator = status_indicator
         self.csm_tab = csm_tab
         self.skid_tags_tab = skid_tags_tab
         self.tray_tags_tab = tray_tags_tab
@@ -379,6 +380,12 @@ class MainTab(QWidget):
                     self.feedback_label.setText("TrayTags.pdf not found in the extracted ZIP file.")
                     self.feedback_label.setStyleSheet("color: red;")
 
+            # Update ZIP status
+                self.status_indicator.set_status("ZIP", True if os.path.exists(local_file_path) else False)
+
+            except Exception as e:
+                self.status_indicator.set_status("ZIP", False)
+
             except Exception as e:
                 self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
                 self.feedback_label.setStyleSheet("color: red;")
@@ -400,6 +407,10 @@ class MainTab(QWidget):
         # Hide the date label
         self.date_label.setText("")
         self.date_label.hide()
+
+        # Reset the status indicators
+        self.status_indicator.reset_status()
+
 
         clean_backend_files()
         # clean_backend_files_with_move(data_path)
@@ -539,14 +550,37 @@ class MainApp(QMainWindow):
         # Add the app version to the status bar
         self.statusBar().showMessage(f"Version: {__version__}")
 
+        # Initialize the StatusIndicator and add it to the status bar
+        self.status_indicator = StatusIndicator(self)
+        self.statusBar().addPermanentWidget(self.status_indicator)
+        print("DEBUG: StatusIndicator added to status bar.")
+
+        # # Initialize and add the StatusIndicator
+        # self.status_indicator = StatusIndicator(self)
+        # self.statusBar().addPermanentWidget(self.status_indicator)
+        # self.status_indicator.setVisible(True)
+        # self.status_indicator.adjustSize()
+        # print("DEBUG: StatusIndicator added to status bar.")
+
+        # Initialize the status bar and increase its height
+        # self.statusBar().setStyleSheet("QStatusBar { min-height: 150px; }")
+
+        # Add the StatusIndicator and make it larger
+        # self.status_indicator = StatusIndicator(self)
+        # self.status_indicator.setFixedHeight(40)  # Adjust size
+        # self.status_indicator.setStyleSheet("background-color: yellow; border: 1px solid black;")
+        # self.statusBar().addPermanentWidget(self.status_indicator)
+
+
+
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
 
         # Create the tabs
         self.csm_tab = CSMTab(pd.DataFrame())  # Use the existing implementation of CSMTab
-        self.skid_tags_tab = PrintSkidTagsTab()
-        self.tray_tags_tab = PrintTrayTagsTab()
-        self.main_tab = MainTab(self.csm_tab, self.skid_tags_tab, self.tray_tags_tab)
+        self.skid_tags_tab = PrintSkidTagsTab(self.status_indicator)
+        self.tray_tags_tab = PrintTrayTagsTab(self.status_indicator)
+        self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab)
 
         # Add tabs to the application
         self.tab_widget.addTab(self.main_tab, "Main")
@@ -745,4 +779,5 @@ def perform_initialization_tasks(splash):
 
 if __name__ == "__main__":
     main()
+    print(f"DEBUG: StatusIndicator geometry: {main.status_indicator.geometry()}")
          
