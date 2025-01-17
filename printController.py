@@ -90,12 +90,13 @@ class PrintSkidTagsTab(QWidget):
         if not os.path.exists(pdf_path):
             self.show_error(f"PDF file not found: {pdf_path}")
             self.status_indicator.set_status("Skid Tags", False)  # Red circle for Skid Tags
+            return
         else: 
             self.status_indicator.set_status("Skid Tags", True)  # Green circle for Skid Tags
-            return
         
         try:
             self.doc = fitz.open(pdf_path)
+            print(f"DEBUG: Successfully opened PDF: {pdf_path}")
             self.pdf_path = pdf_path
             self.total_pages = len(self.doc)
             self.current_page_index = 0

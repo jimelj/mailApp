@@ -106,9 +106,9 @@ class PrintTrayTagsTab(QWidget):
         if not os.path.exists(pdf_path):
             self.show_error(f"PDF file not found: {pdf_path}")
             self.status_indicator.set_status("Tray Tags", False)  # Red circle for Skid Tags
+            return
         else: 
             self.status_indicator.set_status("Tray Tags", True)  # Green circle for Skid Tags
-            return
 
         try:
             self.doc = fitz.open(pdf_path)
