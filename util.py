@@ -5,6 +5,7 @@ import paramiko
 import os
 import shutil
 from urllib.parse import quote
+import re
 
 # def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 #     # port = int(port)
@@ -155,13 +156,75 @@ def fetch_latest_ftp_files():
 
         c.close()
 
+        # # Decode the response and parse file names
+        # response = buffer.getvalue().decode("utf-8")
+        # print(f"DEBUG: FTP Response:\n{response}")
+        # files = response.splitlines()
+        # print(f"DEBUG: Parsed files:\n{files}")
+        # zip_files = [f.strip() for f in files if f.strip().lower().endswith(".zip")]
+        # print(f"DEBUG: Filtered ZIP files:\n{zip_files}")
+        # zip_files.sort(reverse=True)  # Sort to get the latest files first
+        # print(f"DEBUG: Sorted ZIP files:\n{zip_files}")
+        # print(f"DEBUG: Returning latest ZIP files:\n{zip_files[:6]}")
+        # return zip_files[:6]  # Return the latest 6 ZIP files
+
+        # def parse_date_from_filename(filename):
+        #     """Extract the date part from the filename."""
+        #     match = re.search(r"\d{2}-\d{2}-\d{2}_\d{6}-\d{6}", filename)
+        #     if match:
+        #         # Convert the date portion into a sortable format
+        #         return match.group(0)
+        #     return None
+
+        # # Decode the response and parse file names
+        # response = buffer.getvalue().decode("utf-8")
+        # print(f"DEBUG: FTP Response:\n{response}")
+
+        # # Split the response into lines and filter ZIP files
+        # files = response.splitlines()
+        # print(f"DEBUG: Parsed files:\n{files}")
+
+        # # Clean up filenames and filter for ZIP files
+        # zip_files = [f.strip() for f in files if f.strip().lower().endswith(".zip")]
+        # print(f"DEBUG: Filtered ZIP files:\n{zip_files}")
+
+        # # Sort ZIP files by the extracted date
+        # zip_files.sort(key=parse_date_from_filename, reverse=True)  # Sort by date in descending order
+        # print(f"DEBUG: Sorted ZIP files:\n{zip_files}")
+
+        # # Return the latest 6 ZIP files
+        # latest_zip_files = zip_files[:6]
+        # print(f"DEBUG: Returning latest ZIP files:\n{latest_zip_files}")
+        # return latest_zip_files
+
+        def parse_date_from_filename(filename):
+            """Extract the date in the YYYYMMDD format (e.g., 250118) from the filename."""
+            match = re.search(r"_\d{6}-", filename)
+            if match:
+                # Extract the 6-digit date (YYYYMMDD format) and return it
+                return match.group(0).strip("_-")
+            return None
+
         # Decode the response and parse file names
         response = buffer.getvalue().decode("utf-8")
         print(f"DEBUG: FTP Response:\n{response}")
+
+        # Split the response into lines and filter ZIP files
         files = response.splitlines()
-        zip_files = [f for f in files if f.lower().endswith(".zip")]
-        zip_files.sort(reverse=True)  # Sort to get the latest files first
-        return zip_files[:6]  # Return the latest 6 ZIP files
+        print(f"DEBUG: Parsed files:\n{files}")
+
+        # Clean up filenames and filter for ZIP files
+        zip_files = [f.strip() for f in files if f.strip().lower().endswith(".zip")]
+        print(f"DEBUG: Filtered ZIP files:\n{zip_files}")
+
+        # Sort ZIP files by the extracted date
+        zip_files.sort(key=parse_date_from_filename, reverse=True)  # Sort by date in descending order
+        print(f"DEBUG: Sorted ZIP files:\n{zip_files}")
+
+        # Return the latest 6 ZIP files
+        latest_zip_files = zip_files[:6]
+        print(f"DEBUG: Returning latest ZIP files:\n{latest_zip_files}")
+        return latest_zip_files
 
     except pycurl.error as e:
         raise RuntimeError(f"Failed to fetch files from FTP: {e}")
