@@ -1,6 +1,6 @@
 {
   "version": "v1.3.7",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.3.6 (aa05430)\n  - - nother bug fix (99899e2)",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.3.5 (21b3485)\n  - - another bug fix (bdb2015)\n  - - Update VERSION and latest_version.json to v1.3.6 (115e736)\n  - - another bug fix (3a63ee2)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (67fb957)\n  - - Update VERSION and latest_version.json to v1.3.6 (aa05430)\n  - - nother bug fix (99899e2)\n  - - Update VERSION and latest_version.json to v1.3.7 (ad0d106)\n  - - nother bug fix (819e45f)",
   "download_url": {
     "windows": "https://github.com/jimelj/mailApp/releases/download/v1.3.7/PostFlow-v1.3.7.exe",
     "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.3.7/PostFlow-v1.3.7.dmg"
