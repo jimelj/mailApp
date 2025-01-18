@@ -32,13 +32,7 @@ jobs:
       #   run: |
       #     echo "$POSTFLOW_ENV_CONTENT" > .env
       #     echo .env
-name: Free Disk Space (Ubuntu)
-on: push
 
-jobs:
-  free-disk-space:
-    runs-on: ubuntu-latest
-    steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
