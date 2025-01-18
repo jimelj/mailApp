@@ -194,7 +194,7 @@ jobs:
 
           # rm -rf dist build dmg_contents *.egg-info
 
-          # # Verify available disk space
+          # # Verify available disk space hello
           # df -h
 
           # # Create the DMG file
