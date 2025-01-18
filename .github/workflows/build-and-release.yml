@@ -182,7 +182,7 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          df -h
+          
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
           rm -rf dist build dmg_contents *.egg-info
           # Clean up the previous dmg_contents directory if it exists
@@ -197,6 +197,9 @@ jobs:
             -ov \
             -format UDZO \
             dist/PostFlow-${{ env.VERSION }}.dmg
+          df -h
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          rm -rf dist build dmg_contents *.egg-info  
           rm -rf dmg_contents
 
           # Clean up old builds and unnecessary files
