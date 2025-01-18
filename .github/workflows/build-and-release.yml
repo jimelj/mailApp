@@ -198,7 +198,7 @@ jobs:
 
           # Create the DMG file
           mkdir dmg_contents
-          cp -R dist/PostFlow-v1.3.3.app dmg_contents
+          cp -R dist/PostFlow-${{ env.VERSION }}.app dmg_contents/
           hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
             -srcfolder dmg_contents \
             -ov \
