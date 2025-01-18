@@ -1,8 +1,8 @@
 {
-  "version": "v1.3.3",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.3.2 (70438a6)\n  - - pushing update to windows (035d1f7)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (eb58166)\n  - - push windows update (5c9b714)\n  - - fixing windows (c6df3be)",
+  "version": "v1.3.4",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.3.3 (b5d5298)\n  - - ran out of space in github actions lol (b55693f)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (5714c04)\n  - - bug fix (0b6e776)\n  - - bug fix (2fd6ccc)\n  - - bug fix (d458be5)\n  - - bug fix (1381556)\n  - - bug fix (947cb48)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.3.3/PostFlow-v1.3.3.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.3.3/PostFlow-v1.3.3.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.3.4/PostFlow-v1.3.4.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.3.4/PostFlow-v1.3.4.dmg"
   }
 }
