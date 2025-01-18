@@ -33,21 +33,21 @@ jobs:
       #     echo "$POSTFLOW_ENV_CONTENT" > .env
       #     echo .env
 
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          # this might remove tools that are actually needed,
-          # if set to "true" but frees about 6 GB
-          tool-cache: false
+      # - name: Free Disk Space (Ubuntu)
+      #   uses: jlumbroso/free-disk-space@main
+      #   with:
+      #     # this might remove tools that are actually needed,
+      #     # if set to "true" but frees about 6 GB
+      #     tool-cache: false
           
-          # all of these default to true, but feel free to set to
-          # "false" if necessary for your workflow
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+      #     # all of these default to true, but feel free to set to
+      #     # "false" if necessary for your workflow
+      #     android: true
+      #     dotnet: true
+      #     haskell: true
+      #     large-packages: true
+      #     docker-images: true
+      #     swap-storage: true
         # Create .env file for macOS and Linux
         - name: Create .env file from secret (macOS/Linux)
           if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
@@ -197,14 +197,33 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
+          # mkdir dmg_contents
+          # cp -R dist/PostFlow-${{ env.VERSION }}.app dmg_contents/
+          # hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+          #   -srcfolder dmg_contents \
+          #   -ov \
+          #   -format UDZO \
+          #   dist/PostFlow-${{ env.VERSION }}.dmg
+          # rm -rf dmg_contents
+
+          # Clean up old builds and unnecessary files
+          rm -rf dist build dmg_contents *.egg-info
+
+          # Verify available disk space
+          df -h
+
+          # Create the DMG file
           mkdir dmg_contents
-          cp -R dist/PostFlow-${{ env.VERSION }}.app dmg_contents/
-          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+          cp -R dist/PostFlow-v1.3.3.app dmg_contents
+          hdiutil create -volname "PostFlow-v1.3.3" \
             -srcfolder dmg_contents \
             -ov \
             -format UDZO \
-            dist/PostFlow-${{ env.VERSION }}.dmg
+            dist/PostFlow-v1.3.3.dmg
           rm -rf dmg_contents
+
+          # Check disk space after cleanup
+          df -h
 
       - name: Archive build artifacts
         if: always()
