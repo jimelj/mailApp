@@ -69,21 +69,62 @@ class UpdateApp:
         if msg_box.exec() == QMessageBox.Ok:
             self.download_update(download_url)
 
+    # def download_update(self, url):
+    #     filename = os.path.basename(url)
+    #     try:
+    #         response = requests.get(url, stream=True, timeout=30)
+    #         response.raise_for_status()
+    #         with open(filename, "wb") as file:
+    #             for chunk in response.iter_content(chunk_size=8192):
+    #                 file.write(chunk)
+    #         print(f"Downloaded update to: {filename}")
+    #         print(f"Downloading from {url} to {filename}")
+    #         self.install_update(filename)
+    #     except Exception as e:
+    #         print(f"Failed to download update: {e}")
+
+    # def install_update(self, filename):
+    #     if platform.system() == "Windows":
+    #         os.startfile(filename)  # Launch installer
+    #     elif platform.system() == "Darwin":
+    #         os.system(f"open {filename}")  # Open DMG file
+    #     else:
+    #         print("Installer not supported for this OS.")
+
     def download_update(self, url):
-        filename = os.path.basename(url)
+        # Extract the filename from the URL
+        default_filename = os.path.basename(url)
+
+        # Prompt the user to choose a save location (Windows and other platforms)
+        if platform.system() == "Windows" or platform.system() == "Darwin":
+            Tk().withdraw()  # Hide the root Tkinter window
+            save_path = asksaveasfilename(
+                initialfile=default_filename,
+                title="Save Update File As",
+                filetypes=[("All Files", "*.*")],
+            )
+            if not save_path:
+                print("Download canceled by the user.")
+                return
+        else:
+            # Default save location for unsupported platforms
+            save_path = default_filename
+
         try:
+            # Download the file from the URL
+            print(f"Downloading update from {url} to {save_path}")
             response = requests.get(url, stream=True, timeout=30)
             response.raise_for_status()
-            with open(filename, "wb") as file:
+            with open(save_path, "wb") as file:
                 for chunk in response.iter_content(chunk_size=8192):
                     file.write(chunk)
-            print(f"Downloaded update to: {filename}")
-            print(f"Downloading from {url} to {filename}")
-            self.install_update(filename)
+            print(f"Downloaded update to: {save_path}")
+            self.install_update(save_path)
         except Exception as e:
             print(f"Failed to download update: {e}")
 
     def install_update(self, filename):
+        # Launch the installer based on the platform
         if platform.system() == "Windows":
             os.startfile(filename)  # Launch installer
         elif platform.system() == "Darwin":
