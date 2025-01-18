@@ -199,11 +199,11 @@ jobs:
           # Create the DMG file
           mkdir dmg_contents
           cp -R dist/PostFlow-v1.3.3.app dmg_contents
-          hdiutil create -volname "PostFlow-v1.3.3" \
+          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
             -srcfolder dmg_contents \
             -ov \
             -format UDZO \
-            dist/PostFlow-v1.3.3.dmg
+            dist/PostFlow-${{ env.VERSION }}.dmg
           rm -rf dmg_contents
 
           # Check disk space after cleanup
