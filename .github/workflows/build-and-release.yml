@@ -33,30 +33,15 @@ jobs:
       #     echo "$POSTFLOW_ENV_CONTENT" > .env
       #     echo .env
 
-      # - name: Free Disk Space (Ubuntu)
-      #   uses: jlumbroso/free-disk-space@main
-      #   with:
-      #     # this might remove tools that are actually needed,
-      #     # if set to "true" but frees about 6 GB
-      #     tool-cache: false
-          
-      #     # all of these default to true, but feel free to set to
-      #     # "false" if necessary for your workflow
-      #     android: true
-      #     dotnet: true
-      #     haskell: true
-      #     large-packages: true
-      #     docker-images: true
-      #     swap-storage: true
-        # Create .env file for macOS and Linux
-        - name: Create .env file from secret (macOS/Linux)
-          if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
-          env:
-            POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
-          run: |
-            echo "$POSTFLOW_ENV_CONTENT" > .env
-            echo "Created .env file for macOS/Linux."
-          shell: bash
+      # Create .env file for macOS and Linux
+      - name: Create .env file from secret (macOS/Linux)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        env:
+          POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
+        run: |
+          echo "$POSTFLOW_ENV_CONTENT" > .env
+          echo "Created .env file for macOS/Linux."
+        shell: bash
 
       # Create .env file for Windows
       - name: Create .env file from secret (Windows)
@@ -205,7 +190,6 @@ jobs:
           #   -format UDZO \
           #   dist/PostFlow-${{ env.VERSION }}.dmg
           # rm -rf dmg_contents
-
           # Clean up old builds and unnecessary files
           rm -rf dist build dmg_contents *.egg-info
 
