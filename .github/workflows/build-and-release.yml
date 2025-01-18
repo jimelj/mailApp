@@ -182,6 +182,7 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
           # Clean up the previous dmg_contents directory if it exists
           if [ -d "dmg_contents" ]; then
               echo "Removing existing dmg_contents directory..."
