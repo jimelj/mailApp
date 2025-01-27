@@ -177,3 +177,5 @@ CSM_Report.xlsx
 *.dmg
 *.exe
 .dmg
+
+dmg_contents/
