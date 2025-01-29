@@ -182,7 +182,7 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          Clean up old builds and unnecessary files
+          # Clean up old builds and unnecessary files
 
           rm -rf dist build dmg_contents *.egg-info
 
