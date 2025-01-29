@@ -182,16 +182,29 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          # Clean up old builds and unnecessary files
-
-          rm -rf dist build dmg_contents *.egg-info
-
-          # Verify available disk space hello
+          # Check disk space before starting
+          echo "Disk space before cleanup:"
           df -h
 
+          # Clean up old files to free space
+          echo "Cleaning up old files..."
+          rm -rf dist build dmg_contents *.egg-info
+
+          # Check disk space after cleanup
+          echo "Disk space after cleanup:"
+          df -h
+
+          # Check if the .app file was generated
+          APP_PATH="dist/PostFlow-${{ env.VERSION }}.app"
+          if [ ! -e "$APP_PATH" ]; then
+              echo "Error: $APP_PATH was not created."
+              exit 1
+          fi
+
           # Create the DMG file
+          echo "Creating DMG file for version ${{ env.VERSION }}..."
           mkdir dmg_contents
-          cp -R dist/PostFlow-${{ env.VERSION }}.app dmg_contents/
+          cp -R "$APP_PATH" dmg_contents/
           hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
             -srcfolder dmg_contents \
             -ov \
@@ -199,7 +212,8 @@ jobs:
             dist/PostFlow-${{ env.VERSION }}.dmg
           rm -rf dmg_contents
 
-          # Check disk space after cleanup
+          # Check disk space after DMG creation
+          echo "Disk space after creating DMG:"
           df -h
 
       - name: Archive build artifacts
