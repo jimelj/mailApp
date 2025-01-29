@@ -278,7 +278,7 @@ jobs:
           df -h
 
           echo "Cleaning up old files..."
-          rm -rf build dmg_contents dist/*.dmg dist/*.app *.egg-info || true
+          rm -rf build dmg_contents dist/*.dmg *.egg-info || true
 
           echo "Disk space after cleanup:"
           df -h
