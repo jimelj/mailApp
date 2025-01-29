@@ -1,8 +1,8 @@
 {
-  "version": "v1.3.9",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.3.8 (0b604c1)\n  - - deleting dmg_contents folder (776acde)\n  - - Delete dmg_contents directory (990e392)\n  - - new release lets see with mac os version works (ee0a84c)\n  - - Update VERSION and latest_version.json to v1.3.9 (18b433c)\n  - - second attempt (2e81ac0)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (ffd671a)\n  - - Update VERSION and latest_version.json to v1.3.9 (cd16513)\n  - - working on dmg (d23b900)\n  - - Update VERSION and latest_version.json to v1.3.9 (b4b7731)\n  - - working on dmg (fa2ac13)\n  - - Update VERSION and latest_version.json to v1.3.9 (ff0d1c5)\n  - - working on dmg (fc94913)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (afc4e15)\n  - - Update VERSION and latest_version.json to v1.3.9 (e3e1ebf)\n  - - working on dmg (ca2eff5)\n  - - Update VERSION and latest_version.json to v1.3.9 (91f860d)\n  - - working on dmg (445f6f6)\n  - - Update VERSION and latest_version.json to v1.3.9 (c0c557d)\n  - - working on dmg (dd756c3)\n  - - Update VERSION and latest_version.json to v1.3.9 (21fd699)\n  - - working on dmg (25638d3)\n  - - Update VERSION and latest_version.json to v1.3.9 (be0d3b6)\n  - - working on dmg (1126924)\n  - - help (f5362ad)\n  - - Update VERSION and latest_version.json to v1.3.9 (c09aa48)\n  - - help help (804a2df)\n  - - Update VERSION and latest_version.json to v1.3.9 (ce46dca)\n  - - another try (0755b9c)\n  - - Update VERSION and latest_version.json to v1.3.9 (650cf95)\n  - - fixing dmg (18dc0da)\n  - - fixing dmg (a455dc6)",
+  "version": "v1.4.0",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.3.9 (2696084)\n  - - fixing no space issue (4449f0e)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.3.9/PostFlow-v1.3.9.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.3.9/PostFlow-v1.3.9.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.0/PostFlow-v1.4.0.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.0/PostFlow-v1.4.0.dmg"
   }
 }
