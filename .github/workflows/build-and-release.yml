@@ -189,6 +189,7 @@ jobs:
           ls
           ls dist
           echo "Contents of ${{ env.VERSION }}:"
+          echo PostFlow-${{ env.VERSION }}.app
 
           # Clean up old files to free space
           echo "Cleaning up old files..."
