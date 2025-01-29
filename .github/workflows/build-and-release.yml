@@ -272,53 +272,53 @@ jobs:
       #     # df -h
 
       - name: Create DMG using hdiutil (for macOS)
-          if: matrix.os == 'macos-latest'
-          run: |
-            echo "Disk space before starting:"
-            df -h
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo "Disk space before starting:"
+          df -h
 
-            echo "Cleaning up old files to free space..."
-            rm -rf build dmg_contents *.egg-info
+          echo "Cleaning up old files to free space..."
+          rm -rf build dmg_contents *.egg-info
 
-            echo "Disk space after cleanup:"
-            df -h
+          echo "Disk space after cleanup:"
+          df -h
 
-            echo "Checking for app file..."
-            ls -la dist/
+          echo "Checking for app file..."
+          ls -la dist/
 
-            if [ ! -e "dist/PostFlow-${{ env.VERSION }}.app" ]; then
-                echo "Error: dist/PostFlow-${{ env.VERSION }}.app was not created."
-                exit 1
-            fi
+          if [ ! -e "dist/PostFlow-${{ env.VERSION }}.app" ]; then
+              echo "Error: dist/PostFlow-${{ env.VERSION }}.app was not created."
+              exit 1
+          fi
 
-            echo "Creating DMG..."
-            mkdir dmg_contents
-            cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
+          echo "Creating DMG..."
+          mkdir dmg_contents
+          cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
 
-            TMPDIR="./dmg_temp"
-            mkdir -p "$TMPDIR"
-            export TMPDIR
+          TMPDIR="./dmg_temp"
+          mkdir -p "$TMPDIR"
+          export TMPDIR
 
-            hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
-                -srcfolder dmg_contents \
-                -ov \
-                -format UDZO \
-                "dist/PostFlow-${{ env.VERSION }}.dmg"
+          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+              -srcfolder dmg_contents \
+              -ov \
+              -format UDZO \
+              "dist/PostFlow-${{ env.VERSION }}.dmg"
 
-            echo "Cleaning up temporary files..."
-            rm -rf dmg_contents "$TMPDIR"
+          echo "Cleaning up temporary files..."
+          rm -rf dmg_contents "$TMPDIR"
 
-            echo "Disk space after creating DMG:"
-            df -h
+          echo "Disk space after creating DMG:"
+          df -h
 
-            echo "Verifying DMG file..."
-            ls -lh "dist/PostFlow-${{ env.VERSION }}.dmg"
+          echo "Verifying DMG file..."
+          ls -lh "dist/PostFlow-${{ env.VERSION }}.dmg"
 
-            if [ ! -e "dist/PostFlow-${{ env.VERSION }}.dmg" ]; then
-                echo "Error: DMG file was not created."
-                exit 1
-            fi
-            echo "DMG successfully created."
+          if [ ! -e "dist/PostFlow-${{ env.VERSION }}.dmg" ]; then
+              echo "Error: DMG file was not created."
+              exit 1
+          fi
+          echo "DMG successfully created."
 
       - name: Archive build artifacts
         if: always()
