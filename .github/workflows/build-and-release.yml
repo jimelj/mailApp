@@ -277,11 +277,16 @@ jobs:
           echo "Disk space before starting:"
           df -h
 
-          echo "Cleaning up old files to free space..."
-          rm -rf build dmg_contents *.egg-info
+          echo "Cleaning up old files..."
+          rm -rf build dmg_contents dist/*.dmg dist/*.app *.egg-info || true
 
           echo "Disk space after cleanup:"
           df -h
+
+          echo "Setting up temporary directory..."
+          TMPDIR="./dmg_temp"
+          mkdir -p "$TMPDIR"
+          export TMPDIR
 
           echo "Checking for app file..."
           ls -la dist/
@@ -294,15 +299,11 @@ jobs:
           echo "Creating DMG..."
           mkdir dmg_contents
           cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
-
-          TMPDIR="./dmg_temp"
-          mkdir -p "$TMPDIR"
-          export TMPDIR
-
           hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
               -srcfolder dmg_contents \
               -ov \
               -format UDZO \
+              -verbose \
               "dist/PostFlow-${{ env.VERSION }}.dmg"
 
           echo "Cleaning up temporary files..."
