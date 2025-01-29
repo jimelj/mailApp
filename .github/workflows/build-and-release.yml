@@ -182,54 +182,54 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
-        # Check disk space before starting
-        echo "Disk space before cleanup:"
-        df -h
+          # Check disk space before starting
+          echo "Disk space before cleanup:"
+          df -h
 
-        # Clean up old files to free space
-        echo "Cleaning up old files..."
-        rm -rf dist build dmg_contents *.egg-info
+          # Clean up old files to free space
+          echo "Cleaning up old files..."
+          rm -rf dist build dmg_contents *.egg-info
 
-        # Check disk space after cleanup
-        echo "Disk space after cleanup:"
-        df -h
+          # Check disk space after cleanup
+          echo "Disk space after cleanup:"
+          df -h
 
-        # Verify the app file exists
-        echo "Checking for app file..."
-        ls -la dist/
+          # Verify the app file exists
+          echo "Checking for app file..."
+          ls -la dist/
 
-        if [ ! -e "dist/PostFlow-${{ env.VERSION }}.app" ]; then
-            echo "Error: dist/PostFlow-${{ env.VERSION }}.app was not created."
-            exit 1
-        fi
+          if [ ! -e "dist/PostFlow-${{ env.VERSION }}.app" ]; then
+              echo "Error: dist/PostFlow-${{ env.VERSION }}.app was not created."
+              exit 1
+          fi
 
-        # Debugging output to confirm the app is there
-        echo "App file found:"
-        ls -lh dist/PostFlow-${{ env.VERSION }}.app
+          # Debugging output to confirm the app is there
+          echo "App file found:"
+          ls -lh dist/PostFlow-${{ env.VERSION }}.app
 
-        # Create the DMG
-        echo "Creating DMG..."
-        mkdir dmg_contents
-        cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
-        hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
-            -srcfolder dmg_contents \
-            -ov \
-            -format UDZO \
-            "dist/PostFlow-${{ env.VERSION }}.dmg"
+          # Create the DMG
+          echo "Creating DMG..."
+          mkdir dmg_contents
+          cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
+          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+              -srcfolder dmg_contents \
+              -ov \
+              -format UDZO \
+              "dist/PostFlow-${{ env.VERSION }}.dmg"
 
-        # Clean up
-        rm -rf dmg_contents
+          # Clean up
+          rm -rf dmg_contents
 
-        # Verify the DMG was created
-        echo "Verifying DMG file..."
-        ls -lh "dist/PostFlow-${{ env.VERSION }}.dmg"
+          # Verify the DMG was created
+          echo "Verifying DMG file..."
+          ls -lh "dist/PostFlow-${{ env.VERSION }}.dmg"
 
-        if [ ! -e "dist/PostFlow-${{ env.VERSION }}.dmg" ]; then
-            echo "Error: DMG file was not created."
-            exit 1
-        fi
+          if [ ! -e "dist/PostFlow-${{ env.VERSION }}.dmg" ]; then
+              echo "Error: DMG file was not created."
+              exit 1
+          fi
 
-        echo "DMG successfully created."
+          echo "DMG successfully created."
           # # Check disk space before starting
           # echo "Disk space before cleanup:"
           # df -h
