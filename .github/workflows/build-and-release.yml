@@ -189,7 +189,7 @@ jobs:
 
           # Clean up old files to free space
           echo "Cleaning up old files..."
-          rm -rf dist build dmg_contents *.egg-info
+          rm -rf build dmg_contents *.egg-info
 
           # Check disk space after cleanup
           echo "Disk space after cleanup:"
