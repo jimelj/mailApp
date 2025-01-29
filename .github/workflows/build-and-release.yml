@@ -182,44 +182,92 @@ jobs:
       - name: Create DMG using hdiutil (for macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          # Check disk space before starting
-          echo "Disk space before cleanup:"
-          df -h
-          # Example: If VERSION is a file path
-          ls
-          ls dist
-          echo "Contents of ${{ env.VERSION }}:"
-          echo PostFlow-${{ env.VERSION }}.app
+        # Check disk space before starting
+        echo "Disk space before cleanup:"
+        df -h
 
-          # Clean up old files to free space
-          echo "Cleaning up old files..."
-          rm -rf dist build dmg_contents *.egg-info
+        # Clean up old files to free space
+        echo "Cleaning up old files..."
+        rm -rf dist build dmg_contents *.egg-info
 
-          # Check disk space after cleanup
-          echo "Disk space after cleanup:"
-          df -h
+        # Check disk space after cleanup
+        echo "Disk space after cleanup:"
+        df -h
 
-          # Check if the .app file was generated
-          APP_PATH="dist/PostFlow-${{ env.VERSION }}.app"
-          if [ ! -e "$APP_PATH" ]; then
-              echo "Error: $APP_PATH was not created."
-              exit 1
-          fi
+        # Verify the app file exists
+        echo "Checking for app file..."
+        ls -la dist/
 
-          # Create the DMG file
-          echo "Creating DMG file for version ${{ env.VERSION }}..."
-          mkdir dmg_contents
-          cp -R "$APP_PATH" dmg_contents/
-          hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+        if [ ! -e "dist/PostFlow-${{ env.VERSION }}.app" ]; then
+            echo "Error: dist/PostFlow-${{ env.VERSION }}.app was not created."
+            exit 1
+        fi
+
+        # Debugging output to confirm the app is there
+        echo "App file found:"
+        ls -lh dist/PostFlow-${{ env.VERSION }}.app
+
+        # Create the DMG
+        echo "Creating DMG..."
+        mkdir dmg_contents
+        cp -R "dist/PostFlow-${{ env.VERSION }}.app" dmg_contents/
+        hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
             -srcfolder dmg_contents \
             -ov \
             -format UDZO \
-            dist/PostFlow-${{ env.VERSION }}.dmg
-          rm -rf dmg_contents
+            "dist/PostFlow-${{ env.VERSION }}.dmg"
 
-          # Check disk space after DMG creation
-          echo "Disk space after creating DMG:"
-          df -h
+        # Clean up
+        rm -rf dmg_contents
+
+        # Verify the DMG was created
+        echo "Verifying DMG file..."
+        ls -lh "dist/PostFlow-${{ env.VERSION }}.dmg"
+
+        if [ ! -e "dist/PostFlow-${{ env.VERSION }}.dmg" ]; then
+            echo "Error: DMG file was not created."
+            exit 1
+        fi
+
+        echo "DMG successfully created."
+          # # Check disk space before starting
+          # echo "Disk space before cleanup:"
+          # df -h
+          # # Example: If VERSION is a file path
+          # ls
+          # ls dist
+          # echo "Contents of ${{ env.VERSION }}:"
+          # echo PostFlow-${{ env.VERSION }}.app
+
+          # # Clean up old files to free space
+          # echo "Cleaning up old files..."
+          # rm -rf dist build dmg_contents *.egg-info
+
+          # # Check disk space after cleanup
+          # echo "Disk space after cleanup:"
+          # df -h
+
+          # # Check if the .app file was generated
+          # APP_PATH="dist/PostFlow-${{ env.VERSION }}.app"
+          # if [ ! -e "$APP_PATH" ]; then
+          #     echo "Error: $APP_PATH was not created."
+          #     exit 1
+          # fi
+
+          # # Create the DMG file
+          # echo "Creating DMG file for version ${{ env.VERSION }}..."
+          # mkdir dmg_contents
+          # cp -R "$APP_PATH" dmg_contents/
+          # hdiutil create -volname "PostFlow-${{ env.VERSION }}" \
+          #   -srcfolder dmg_contents \
+          #   -ov \
+          #   -format UDZO \
+          #   dist/PostFlow-${{ env.VERSION }}.dmg
+          # rm -rf dmg_contents
+
+          # # Check disk space after DMG creation
+          # echo "Disk space after creating DMG:"
+          # df -h
 
       - name: Archive build artifacts
         if: always()
