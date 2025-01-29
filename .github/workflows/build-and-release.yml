@@ -186,8 +186,9 @@ jobs:
           echo "Disk space before cleanup:"
           df -h
           # Example: If VERSION is a file path
+          ls
+          ls dist
           echo "Contents of ${{ env.VERSION }}:"
-          cat "${{ env.VERSION }}"
 
           # Clean up old files to free space
           echo "Cleaning up old files..."
