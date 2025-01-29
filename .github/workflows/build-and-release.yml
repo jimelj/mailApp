@@ -185,6 +185,7 @@ jobs:
           # Check disk space before starting
           echo "Disk space before cleanup:"
           df -h
+          ls
 
           # Clean up old files to free space
           echo "Cleaning up old files..."
@@ -193,6 +194,7 @@ jobs:
           # Check disk space after cleanup
           echo "Disk space after cleanup:"
           df -h
+          ls
 
           # Verify the app file exists
           echo "Checking for app file..."
