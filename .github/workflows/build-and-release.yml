@@ -185,6 +185,7 @@ jobs:
           # Check disk space before starting
           echo "Disk space before cleanup:"
           df -h
+          cat env.VERSION
 
           # Clean up old files to free space
           echo "Cleaning up old files..."
