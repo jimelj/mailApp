@@ -130,7 +130,7 @@ jobs:
       - name: Upload Update Metadata
         uses: actions/upload-artifact@v4
         with:
-          name: update_metadata
+          name: update_metadata-${{ github.run_id }}
           path: latest_version.json
        
       - name: Build application with PyInstaller
