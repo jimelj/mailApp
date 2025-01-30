@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.2",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.1 (9f0d7ba)\n  - - retry (5189cd3)\n  - - Update VERSION and latest_version.json to v1.4.2 (1f6c24e)\n  - - fixing dmg (e9c9007)",
+  "version": "v1.4.3",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.2 (25a8798)\n  - - fixed naming destination for capstone (c91739b)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.2/PostFlow-v1.4.2.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.2/PostFlow-v1.4.2.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.3/PostFlow-v1.4.3.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.3/PostFlow-v1.4.3.dmg"
   }
 }
