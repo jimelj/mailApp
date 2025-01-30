@@ -1,6 +1,6 @@
 {
   "version": "v1.4.5",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.4 (fdf7a1a)\n  - - changes to update.py (a53cb99)\n  - - Update VERSION and latest_version.json to v1.4.5 (f956020)\n  - - metadata fix (e5fa62f)",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.4 (fdf7a1a)\n  - - changes to update.py (a53cb99)\n  - - Update VERSION and latest_version.json to v1.4.5 (f956020)\n  - - metadata fix (e5fa62f)\n  - - Update VERSION and latest_version.json to v1.4.5 (61ab2a2)\n  - - fixing metadata (39a4db4)",
   "download_url": {
     "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.5/PostFlow-v1.4.5.exe",
     "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.5/PostFlow-v1.4.5.dmg"
