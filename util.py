@@ -109,7 +109,7 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         print("Upload successful!")
         sftp.close()
         ssh.close()
-
+        return f"File {file_path} uploaded successfully to {remote_dir}"
     except paramiko.SSHException as e:
         print(f"SSH error: {e}")
     except Exception as e:
