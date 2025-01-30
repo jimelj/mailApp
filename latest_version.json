@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.7",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.6 (063668b)\n  - - fixing remote path for ftp (25634e8)",
+  "version": "v1.4.8",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.7 (1009d5e)\n  - - fixed FTP issue (b5904bd)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.7/PostFlow-v1.4.7.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.7/PostFlow-v1.4.7.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.8/PostFlow-v1.4.8.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.8/PostFlow-v1.4.8.dmg"
   }
 }
