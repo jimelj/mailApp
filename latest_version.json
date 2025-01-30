@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.4",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.3 (1cce870)\n  - - updated capstone to display successfull transmit (6c8e5e6)\n  - - Merge remote-tracking branch 'refs/remotes/origin/main' (33b715d)\n  - - fixed some weird githubactions artifactv3 (b5cc13d)",
+  "version": "v1.4.5",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.4 (fdf7a1a)\n  - - changes to update.py (a53cb99)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.4/PostFlow-v1.4.4.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.4/PostFlow-v1.4.4.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.5/PostFlow-v1.4.5.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.5/PostFlow-v1.4.5.dmg"
   }
 }
