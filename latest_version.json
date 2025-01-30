@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.6",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.5 (ef2e614)\n  - - checkout secrets (6a81419)\n  - - fixing secrets (1c5424f)",
+  "version": "v1.4.7",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.6 (063668b)\n  - - fixing remote path for ftp (25634e8)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.6/PostFlow-v1.4.6.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.6/PostFlow-v1.4.6.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.7/PostFlow-v1.4.7.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.7/PostFlow-v1.4.7.dmg"
   }
 }
