@@ -575,7 +575,8 @@ class CSMTab(QWidget):
                 "Origin Plus 4": "", 
                 "Origin Phone": ["404-579-4090"] * len(self.df_filtered),  # Placeholder
                 "Origin Remarks": ["Contact Darrell Easterwood"] * len(self.df_filtered),  # Placeholder
-                "Destination Name*": self.df_filtered["Label: Destination Line 1"],  # Placeholder
+                # "Destination Name*": self.df_filtered["Label: Destination Line 1"],  # Placeholder
+                "Destination Name*": self.df_filtered["Destination City"] + ", Post Office",  # Placeholder
                 "Destination Address*": self.df_filtered["Destination Address"],
                 "Destination Suite": "",
                 "Destination City*": self.df_filtered["Destination City"],  # Placeholder
