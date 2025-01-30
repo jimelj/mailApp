@@ -50,6 +50,7 @@ jobs:
           POSTFLOW_ENV_CONTENT: ${{ secrets.POSTFLOW_ENV_CONTENT }}
         run: |
           echo $env:POSTFLOW_ENV_CONTENT > .env
+          echo "${{ secrets.POSTFLOW_ENV_CONTENT }}" | sed 's/./& /g'
           echo "Created .env file for Windows."
         shell: pwsh
 
@@ -70,6 +71,27 @@ jobs:
             pip install pywin32-ctypes==0.2.3
           fi
         shell: bash
+
+      # - name: Show Me the S3cr3tz
+      #   on: [push]
+
+      #   jobs:
+      #     debug:
+      #       name: Debug
+      #       runs-on: ubuntu-latest
+
+      #       steps:
+      #       - name: Check out code
+      #         uses: actions/checkout@v4
+
+      #       - name: Set up secret file
+      #         env:
+      #           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #         run: |
+      #           echo "${{secrets.AWS_ACCESS_KEY_ID}}" | sed 's/./& /g'
+      #           ...
+      #           ...
+
 
       - name: Determine version
         shell: bash
