@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.0",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.3.9 (2696084)\n  - - fixing no space issue (4449f0e)",
+  "version": "v1.4.1",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.0 (e85ca55)\n  - - fixing dmg (3ed3e1f)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.0/PostFlow-v1.4.0.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.0/PostFlow-v1.4.0.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.1/PostFlow-v1.4.1.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.1/PostFlow-v1.4.1.dmg"
   }
 }
