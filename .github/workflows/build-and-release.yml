@@ -276,7 +276,7 @@ jobs:
         run: |
           echo "Disk space before starting:"
           df -h
-          du -sh dmg_contents
+          # du -sh dmg_contents
 
           echo "Cleaning up old files..."
           rm -rf build dmg_contents dist/*.dmg *.egg-info || true
