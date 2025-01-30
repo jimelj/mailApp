@@ -29,7 +29,7 @@ if platform.system() == "Windows":
 
 
 # def set_working_directory():
-#     # Get the directory of the executable or script
+#     # Get the directory of the executable or script fff
 #     if getattr(sys, 'frozen', False):  # Check if bundled by PyInstaller
 #         application_path = os.path.dirname(sys.executable)
 #     else:
