@@ -6,6 +6,7 @@ import os
 import shutil
 from urllib.parse import quote
 import re
+import posixpath
 
 # def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 #     # port = int(port)
@@ -99,8 +100,12 @@ def upload_to_ftps(file_path, host, username, password, remote_dir, port):
         # Open SFTP session
         sftp = ssh.open_sftp()
 
-        # Normalize remote path
-        remote_path = os.path.join(remote_dir, os.path.basename(file_path))
+        # # Normalize remote path
+        # remote_path = os.path.join(remote_dir, os.path.basename(file_path))
+
+        # Use POSIX-style path formatting
+        remote_path = posixpath.join(remote_dir, os.path.basename(file_path))
+        print(f"DEBUG: Uploading to remote path: '{remote_path}'")
 
         # Upload file
         print(f"Uploading {file_path} to {remote_path} on {host}...")
