@@ -227,8 +227,7 @@ def fetch_latest_ftp_files():
         print(f"DEBUG: Sorted ZIP files:\n{zip_files}")
 
         # Return the latest 6 ZIP files
-        latest_zip_files = zip_files
-        # [:6]
+        latest_zip_files = zip_files[:8]
         print(f"DEBUG: Returning latest ZIP files:\n{latest_zip_files}")
         return latest_zip_files
 
