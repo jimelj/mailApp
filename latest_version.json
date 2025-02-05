@@ -1,8 +1,8 @@
 {
-  "version": "v1.4.9",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.8 (e8ec077)\n  - - Second fix for ftp testing (758872f)",
+  "version": "v1.5.0",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.4.9 (04bab22)\n  - - made mailzip list shorter TODO: future fetch only 8 (76fd1c1)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.4.9/PostFlow-v1.4.9.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.4.9/PostFlow-v1.4.9.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.0/PostFlow-v1.5.0.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.0/PostFlow-v1.5.0.dmg"
   }
 }
