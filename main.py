@@ -11,6 +11,7 @@ from StatusIndicator import StatusIndicator
 from csmController import CSMTab, parse_zip_and_prepare_data  # Import the tab from csmController
 from printController import PrintSkidTagsTab  # Import the tab from printController
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
+from money import MoneyTab
 from update import UpdateApp
 from util import clean_backend_files, clean_backend_files_with_move, process_zip_name
 import stat
@@ -83,7 +84,7 @@ def set_working_directory():
     Sets the working directory based on the runtime environment (bundled or development)
     and dynamically determines paths for bundled files.
     """
-    global facility_report_path, zips_address_file_path, env_file_path, splash_screen_path
+    global facility_report_path, zips_address_file_path, env_file_path, splash_screen_path, rptlist
 
     if getattr(sys, 'frozen', False):  # Check if running as a bundled application
         base_path = sys._MEIPASS  # Temporary directory for PyInstaller bundled app
@@ -99,12 +100,14 @@ def set_working_directory():
     zips_address_file_path = os.path.join(base_path, "Zips by Address File Group.xlsx")
     env_file_path = os.path.join(base_path, ".env")
     splash_screen_path = os.path.join(base_path, 'resources', 'splash.png')
+    rptlist = os.path.join(base_path, 'data', 'extracted', 'Reports', 'RptList.txt')
 
     # Print paths for debugging purposes
     print(f"DEBUG: Facility Report Path - {facility_report_path}")
     print(f"DEBUG: Zips Address File Path - {zips_address_file_path}")
     print(f"DEBUG: .env File Path - {env_file_path}")
     print(f"DEBUG: Splash Screen Path - {splash_screen_path}")
+    print(f"DEBUG: RPTLIST - {rptlist}")
 
 # Call the function during initialization
 set_working_directory()
@@ -235,7 +238,7 @@ QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundin
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
 
-    def __init__(self, status_indicator, csm_tab, skid_tags_tab, tray_tags_tab, ):
+    def __init__(self, status_indicator, csm_tab, skid_tags_tab, tray_tags_tab, money_tab ):
         super().__init__()
 
         self.setMinimumSize(1024, 768)  # Set a minimum size for the window
@@ -244,6 +247,7 @@ class MainTab(QWidget):
         self.csm_tab = csm_tab
         self.skid_tags_tab = skid_tags_tab
         self.tray_tags_tab = tray_tags_tab
+        self.money_tab = money_tab
         self.layout = QVBoxLayout(self)
 
         # Welcome and instructions
@@ -338,6 +342,22 @@ class MainTab(QWidget):
 
                 # Update tabs with new data
                 self.csm_tab.update_data(df_filtered)
+
+            #     # Notify MoneyTab to reload the report
+            #     extracted_report_path = os.path.join("data", "extracted", "Reports", "RptList.txt")
+            #     if os.path.exists(extracted_report_path):
+            #         self.money_tab.reload_report(extracted_report_path)
+            # except Exception as e:
+            #     self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
+            #     self.feedback_label.setStyleSheet("color: red;")
+
+                # # Notify MoneyTab to reload the report
+                extracted_report_path = os.path.join("data", "extracted", "Reports", "RptList.txt")
+                if os.path.exists(extracted_report_path):
+                    print(f"DEBUG: Notifying MoneyTab to reload report: {extracted_report_path}")
+                    self.money_tab.reload_report(extracted_report_path)
+                else:
+                    print("DEBUG: RptList.txt does not exist, skipping reload.")
 
                 # Extract the date from the file name
                 date_from_file = self.extract_date_from_file(local_file_path)
@@ -580,13 +600,15 @@ class MainApp(QMainWindow):
         self.csm_tab = CSMTab(pd.DataFrame())  # Use the existing implementation of CSMTab
         self.skid_tags_tab = PrintSkidTagsTab(self.status_indicator)
         self.tray_tags_tab = PrintTrayTagsTab(self.status_indicator)
-        self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab)
+        self.money_tab = MoneyTab(rptlist)
+        self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab, self.money_tab)
 
         # Add tabs to the application
         self.tab_widget.addTab(self.main_tab, "Main")
         self.tab_widget.addTab(self.csm_tab, "CSM")
         self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
         self.tab_widget.addTab(self.tray_tags_tab, "Print Tray Tags")
+        self.tab_widget.addTab(self.money_tab, "USPS $")
 
     def closeEvent(self, event):
         """
@@ -749,6 +771,9 @@ def main():
         print("DEBUG: MainApp shown and running.")
         updater.check_for_updates()
 
+        # print(f"DEBUG: StatusIndicator geometry: {main.status_indicator.geometry()}")
+
+
         sys.exit(app.exec())
 
     except Exception as e:
@@ -779,5 +804,5 @@ def perform_initialization_tasks(splash):
 
 if __name__ == "__main__":
     main()
-    print(f"DEBUG: StatusIndicator geometry: {main.status_indicator.geometry()}")
+    # print(f"DEBUG: StatusIndicator geometry: {main.status_indicator.geometry()}")
          
