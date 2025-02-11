@@ -7,6 +7,8 @@ import shutil
 from urllib.parse import quote
 import re
 import posixpath
+import pandas as pd
+from pathlib import Path
 
 # def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 #     # port = int(port)
@@ -407,6 +409,9 @@ def move_and_rename_locked_file(file_path, locked_files_dir):
         logging.error(f"Failed to move and rename locked file {file_path}: {e}")
 
 
+
+
+
 def clean_backend_files_with_move(directory):
     """Cleans all files and subdirectories in a directory, moving and renaming locked files."""
     locked_files_dir = os.path.join("data", "locked_files")  # Define the directory for locked files
@@ -447,3 +452,54 @@ def clean_backend_files_with_move(directory):
             logging.warning(f"Locked files moved to: {locked_files_dir}")
     else:
         logging.warning(f"Directory {directory} does not exist.")
+
+class DDUSCFSearch:
+    def __init__(self, zips_file_path):
+        """
+        Initialize the search utility with the path to the ZIP data file.
+        :param zips_file_path: Path to the Excel file containing ZIP data.
+        """
+        self.zips_file_path = Path(zips_file_path)
+
+    def load_zips_data(self, sheet_name="Data"):
+        """
+        Load ZIP data from the Excel file.
+        :param sheet_name: The name of the sheet in the Excel file to load.
+        :return: A pandas DataFrame containing the ZIP data.
+        """
+        try:
+            zips_df = pd.read_excel(self.zips_file_path, sheet_name=sheet_name)
+            zips_df["zip"] = zips_df["zip"].astype(str)
+            return zips_df
+        except Exception as e:
+            print(f"Error loading ZIP data: {e}")
+            return pd.DataFrame()  # Return an empty DataFrame in case of error
+
+    def merge_zip_data(self, main_df, column_to_merge_on="Container Destination Zip", zips_sheet_name="Data"):
+        """
+        Merge the main DataFrame with ZIP data from the Excel file.
+        :param main_df: The main DataFrame to merge.
+        :param column_to_merge_on: Column in the main DataFrame to merge on.
+        :param zips_sheet_name: Sheet name to load ZIP data from.
+        :return: A merged pandas DataFrame.
+        """
+        try:
+            # Load the ZIP data
+            zips_df = self.load_zips_data(sheet_name=zips_sheet_name)
+
+            # Ensure proper data types
+            main_df[column_to_merge_on] = main_df[column_to_merge_on].astype(str)
+
+            # Perform the merge
+            merged_df = pd.merge(
+                main_df,
+                zips_df[["zip", "truckload", "ratedesc"]],
+                left_on=column_to_merge_on,
+                right_on="zip",
+                how="left"
+            )
+
+            return merged_df
+        except Exception as e:
+            print(f"Error merging ZIP data: {e}")
+            return main_df  # Return the original DataFrame if merge fails

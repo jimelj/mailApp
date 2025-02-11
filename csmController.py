@@ -8,7 +8,7 @@ import platform
 from openpyxl import load_workbook
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QPushButton, QFileDialog, QHBoxLayout,QMessageBox
 import webbrowser
-from util import upload_to_ftps
+from util import upload_to_ftps, DDUSCFSearch
 from dotenv import load_dotenv
 from pathlib import Path
 # Conditional import for Windows-specific packages
@@ -546,22 +546,28 @@ class CSMTab(QWidget):
                 "DDU": 9,
                 "SCF": 504,
         }
-            # Load ZIP data from the external file
+            # # Load ZIP data from the external file
+            # zips_by_address_path = script_directory / "Zips by Address File Group.xlsx"
+            # zips_df = pd.read_excel(zips_by_address_path, sheet_name="Data")
+
+            # # Ensure proper data types
+            # zips_df["zip"] = zips_df["zip"].astype(str)
+            # self.df_filtered["Container Destination Zip"] = self.df_filtered["Container Destination Zip"].astype(str)
+
+            # # Merge ZIP data with the filtered DataFrame
+            # merged_df = pd.merge(
+            #     self.df_filtered,
+            #     zips_df[["zip", "truckload", "ratedesc"]],
+            #     left_on="Container Destination Zip",
+            #     right_on="zip",
+            #     how="left"
+            # )
+            # Use the DDUSCFSearch class to merge ZIP data
             zips_by_address_path = script_directory / "Zips by Address File Group.xlsx"
-            zips_df = pd.read_excel(zips_by_address_path, sheet_name="Data")
-
-            # Ensure proper data types
-            zips_df["zip"] = zips_df["zip"].astype(str)
+            ddu_scf_search = DDUSCFSearch(zips_by_address_path)
             self.df_filtered["Container Destination Zip"] = self.df_filtered["Container Destination Zip"].astype(str)
-
-            # Merge ZIP data with the filtered DataFrame
-            merged_df = pd.merge(
-                self.df_filtered,
-                zips_df[["zip", "truckload", "ratedesc"]],
-                left_on="Container Destination Zip",
-                right_on="zip",
-                how="left"
-            )
+            merged_df = ddu_scf_search.merge_zip_data(self.df_filtered)
+            
             # Create the Capstone data structure with placeholders
             capstone_data = {
                 "Customer Number*": ["11769"] * len(self.df_filtered), 
