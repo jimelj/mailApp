@@ -1,8 +1,8 @@
 {
-  "version": "v1.5.0",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.4.9 (04bab22)\n  - - made mailzip list shorter TODO: future fetch only 8 (76fd1c1)",
+  "version": "v1.5.1",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.5.0 (4c6fc53)\n  - - refactored Zip by address file logic into util (59f7e3c)\n  - - implemented usps$ tab to show pay information (be546ef)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.0/PostFlow-v1.5.0.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.0/PostFlow-v1.5.0.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.1/PostFlow-v1.5.1.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.1/PostFlow-v1.5.1.dmg"
   }
 }
