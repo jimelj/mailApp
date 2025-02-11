@@ -1,8 +1,8 @@
 {
-  "version": "v1.5.1",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.5.0 (4c6fc53)\n  - - refactored Zip by address file logic into util (59f7e3c)\n  - - implemented usps$ tab to show pay information (be546ef)",
+  "version": "v1.5.2",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.5.1 (c077d1c)\n  - - Added CPM and AVR package weight (7de57f1)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.1/PostFlow-v1.5.1.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.1/PostFlow-v1.5.1.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.2/PostFlow-v1.5.2.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.2/PostFlow-v1.5.2.dmg"
   }
 }
