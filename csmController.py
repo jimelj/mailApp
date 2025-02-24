@@ -619,7 +619,7 @@ class CSMTab(QWidget):
 
             # Adjust Order Type for outlier cases where "Destination Name*" contains "SCF"
             capstone_df.loc[
-            capstone_df["Destination Name*"].str.contains(r"SCF-MID ISLAND", case=False, na=False),
+            capstone_df["Destination Address*"].str.contains(r"160 DURYEA RD", case=False, na=False),
             ["Order Type*", "Reference 2"]
             ] = [504, "CBAT99"]
             capstone_df.loc[
@@ -636,6 +636,8 @@ class CSMTab(QWidget):
             # Save the Capstone report to a CSV file
             capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
             file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", capstone_report_name, "CSV Files (*.csv)")
+            
+                
             if file_path:
                 capstone_df.to_csv(file_path, index=False)
 
@@ -705,7 +707,7 @@ class CSMTab(QWidget):
                 # result = upload_to_ftps(file_path, host, username, password, remote_dir, port)
                 # print(result)
 
-               
+              
                    
 
         except Exception as e:
