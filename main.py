@@ -13,6 +13,7 @@ from printController import PrintSkidTagsTab  # Import the tab from printControl
 from trayController import PrintTrayTagsTab  # Import the tab from trayController
 from money import MoneyTab
 from update import UpdateApp
+from trucking import TruckingTab
 from util import clean_backend_files, clean_backend_files_with_move, process_zip_name
 import stat
 import requests
@@ -238,7 +239,7 @@ QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundin
 class MainTab(QWidget):
     """Main tab for uploading ZIP files."""
 
-    def __init__(self, status_indicator, csm_tab, skid_tags_tab, tray_tags_tab, money_tab ):
+    def __init__(self, status_indicator, csm_tab, skid_tags_tab, tray_tags_tab, money_tab, trucking_tab ):
         super().__init__()
 
         self.setMinimumSize(1024, 768)  # Set a minimum size for the window
@@ -248,6 +249,7 @@ class MainTab(QWidget):
         self.skid_tags_tab = skid_tags_tab
         self.tray_tags_tab = tray_tags_tab
         self.money_tab = money_tab
+        self.trucking_tab = trucking_tab
         self.layout = QVBoxLayout(self)
 
         # Welcome and instructions
@@ -601,7 +603,8 @@ class MainApp(QMainWindow):
         self.skid_tags_tab = PrintSkidTagsTab(self.status_indicator)
         self.tray_tags_tab = PrintTrayTagsTab(self.status_indicator)
         self.money_tab = MoneyTab(rptlist)
-        self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab, self.money_tab)
+        self.trucking_tab = TruckingTab()
+        self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab, self.money_tab, self.trucking_tab)
 
         # Add tabs to the application
         self.tab_widget.addTab(self.main_tab, "Main")
@@ -609,6 +612,7 @@ class MainApp(QMainWindow):
         self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
         self.tab_widget.addTab(self.tray_tags_tab, "Print Tray Tags")
         self.tab_widget.addTab(self.money_tab, "USPS $")
+        self.tab_widget.addTab(self.trucking_tab, "Trucking 🚚")
 
     def closeEvent(self, event):
         """
