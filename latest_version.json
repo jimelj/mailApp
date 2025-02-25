@@ -1,8 +1,8 @@
 {
-  "version": "v1.5.3",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.5.2 (d85900e)\n  - - fixed SCF file for capstone (7cef040)",
+  "version": "v1.5.4",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.5.3 (3370c24)\n  - - added trucking tab (6c1f82e)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.3/PostFlow-v1.5.3.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.3/PostFlow-v1.5.3.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.4/PostFlow-v1.5.4.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.4/PostFlow-v1.5.4.dmg"
   }
 }
