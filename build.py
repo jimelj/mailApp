@@ -89,6 +89,7 @@ def build_app():
         raise FileNotFoundError(f"Icon file not found: {icon_path}")
 
     clean_previous_builds()
+    
 
     # Build the PyInstaller command
     pyinstaller_command = [
