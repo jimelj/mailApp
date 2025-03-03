@@ -28,9 +28,8 @@ class TruckingTab(QWidget):
 
         # Configure table headers
         headers = [
-            "ID", "Barcode", "Scan Status", "Last Scanned",
-            "Address Name", "Address1", "Address2",
-            "City", "State", "ZIP", "POD"
+            "ID", "Barcode","Destination", "Scan Status", "Last Scanned", 
+            "Address Name", "Scanned Address", "POD"
         ]
         self.table_widget.setColumnCount(len(headers))
         self.table_widget.setHorizontalHeaderLabels(headers)
@@ -49,6 +48,7 @@ class TruckingTab(QWidget):
             for row, parcel in enumerate(parcels):
                 self.table_widget.setItem(row, 0, QTableWidgetItem(str(parcel.get('id'))))
                 self.table_widget.setItem(row, 1, QTableWidgetItem(parcel.get('barcode')))
+                self.table_widget.setItem(row, 2, QTableWidgetItem(parcel.get('destination_name')))
                 
                 scan_status_item = QTableWidgetItem(parcel.get('scan_status'))
                 scan_status = parcel.get('scan_status').lower()
@@ -63,16 +63,22 @@ class TruckingTab(QWidget):
                     scan_status_item.setForeground(QBrush(QColor("black")))
                     scan_status_item.setFont(QFont("", weight=QFont.Bold))
 
-                self.table_widget.setItem(row, 2, scan_status_item)
+                self.table_widget.setItem(row, 3, scan_status_item)
 
-                self.table_widget.setItem(row, 3, QTableWidgetItem(parcel.get('last_scanned_when')))
-                self.table_widget.setItem(row, 4, QTableWidgetItem(parcel.get('address_name')))
-                self.table_widget.setItem(row, 5, QTableWidgetItem(parcel.get('address1')))
-                self.table_widget.setItem(row, 6, QTableWidgetItem(parcel.get('address2')))
-                self.table_widget.setItem(row, 7, QTableWidgetItem(parcel.get('city')))
-                self.table_widget.setItem(row, 8, QTableWidgetItem(parcel.get('state')))
-                self.table_widget.setItem(row, 9, QTableWidgetItem(parcel.get('zip')))
-                self.table_widget.setItem(row, 10, QTableWidgetItem(parcel.get('pod')))
+                self.table_widget.setItem(row, 4, QTableWidgetItem(parcel.get('last_scanned_when')))
+                self.table_widget.setItem(row, 5, QTableWidgetItem(parcel.get('address_name')))
+
+                # Combine address fields into one string
+                scanned_address = ", ".join(filter(None, [
+                    parcel.get('address1'),
+                    parcel.get('address2'),
+                    parcel.get('city'),
+                    parcel.get('state'),
+                    parcel.get('zip')
+                ]))
+
+                self.table_widget.setItem(row, 6, QTableWidgetItem(scanned_address))
+                self.table_widget.setItem(row, 7, QTableWidgetItem(parcel.get('pod')))
 
             # Resize columns again after populating to ensure full value visibility
             self.table_widget.resizeColumnsToContents()
