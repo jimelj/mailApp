@@ -228,6 +228,7 @@ __version__ = get_version()
 # Print version for confirmation
 print(f"App Version: {__version__}")
 
+
 updater = UpdateApp(__version__)
 
 
