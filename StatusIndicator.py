@@ -71,7 +71,7 @@ class StatusIndicator(QWidget):
         self.setObjectName("statusIndicator")
         
         # Set layout properties
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(5, 0, 5, 0)
         self.layout.setSpacing(15)
         self.layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
@@ -86,37 +86,39 @@ class StatusIndicator(QWidget):
         self.layout.addWidget(self.tray_tags_status["widget"])
 
     def create_status_indicator(self, text):
-        """Create a modern status indicator with text."""
+        """Create a status indicator with bright red circle and text."""
         widget = QWidget()
         widget_layout = QHBoxLayout()
         widget.setLayout(widget_layout)
         widget_layout.setContentsMargins(0, 0, 0, 0)
-        widget_layout.setSpacing(5)
+        widget_layout.setSpacing(8)
         widget_layout.setAlignment(Qt.AlignCenter)
 
-        # Status indicator
-        indicator = StatusLight()
-        indicator.setFixedSize(12, 12)
-        indicator.set_status(False)  # Default to red/error state
+        # Create a simple circle label rather than custom painted widget
+        circle = QLabel()
+        circle.setFixedSize(14, 14)
+        circle.setStyleSheet("background-color: #FF0000; border-radius: 7px;")
 
-        # Text label with modern styling
+        # Text label with clear styling
         text_label = QLabel(text)
-        text_label.setStyleSheet("color: #555555; font-size: 10pt;")
+        text_label.setStyleSheet("color: #000000; font-size: 11pt;")
 
         # Add to layout
-        widget_layout.addWidget(indicator)
+        widget_layout.addWidget(circle)
         widget_layout.addWidget(text_label)
 
-        return {"indicator": indicator, "widget": widget}
+        return {"indicator": circle, "widget": widget}
 
     def set_status(self, component, status):
         """Set the status of an indicator."""
+        color = "#00CC00" if status else "#FF0000"  # Bright green or bright red
+        
         if component == "ZIP":
-            self.zip_status["indicator"].set_status(status)
+            self.zip_status["indicator"].setStyleSheet(f"background-color: {color}; border-radius: 7px;")
         elif component == "Skid Tags":
-            self.skid_tags_status["indicator"].set_status(status)
+            self.skid_tags_status["indicator"].setStyleSheet(f"background-color: {color}; border-radius: 7px;")
         elif component == "Tray Tags":
-            self.tray_tags_status["indicator"].set_status(status)
+            self.tray_tags_status["indicator"].setStyleSheet(f"background-color: {color}; border-radius: 7px;")
 
     def reset_status(self):
         """Reset all indicators to the default (red) state."""

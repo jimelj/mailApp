@@ -286,13 +286,21 @@ QGroupBox::title {
 
 /* StatusIndicator Styling */
 #statusIndicator {
-    min-height: 24px;
-    max-height: 24px;
-    padding: 2px;
-    margin: 2px;
+    background-color: transparent;
+    padding: 2px 8px;
+    margin-right: 5px;
 }
 
 #statusIndicator QLabel {
-    border-radius: 4px;
-    padding: 2px 8px;
+    color: #000000;
+    font-size: 11pt;
+    font-weight: normal;
+}
+
+/* Window Corner Grip Styling */
+QSizeGrip {
+    background-color: transparent;
+    width: 16px;
+    height: 16px;
+    image: none;
 } 
