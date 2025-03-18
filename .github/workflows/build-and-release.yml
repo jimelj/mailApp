@@ -167,6 +167,7 @@ jobs:
                 --add-data "facilityReport.xlsx:." \
                 --add-data "Zips by Address File Group.xlsx:." \
                 --add-data "resources/splash.png:resources" \
+                --add-data "styles.qss:." \
                 --add-data "VERSION:." \
                 --icon=icon.icns \
                 --name=PostFlow-${{ env.VERSION }} main.py
@@ -176,6 +177,7 @@ jobs:
                 --add-data "facilityReport.xlsx;." \
                 --add-data "Zips by Address File Group.xlsx;." \
                 --add-data "resources/splash.png;resources" \
+                --add-data "styles.qss;." \
                 --add-data "VERSION:." \
                 --icon=icon.ico \
                 --name=PostFlow-${{ env.VERSION }} main.py

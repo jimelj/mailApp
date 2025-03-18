@@ -611,24 +611,25 @@ class MainApp(QMainWindow):
         """Load the application stylesheet."""
         self.stylesheet_loaded = False
         try:
-            # Try to load stylesheet file
-            stylesheet_path = "styles.qss"
-            if os.path.exists(stylesheet_path):
-                with open(stylesheet_path, "r") as f:
-                    style_content = f.read()
-                    self.setStyleSheet(style_content)
-                print(f"DEBUG: Loaded stylesheet from {stylesheet_path}")
-                self.stylesheet_loaded = True
-            else:
-                print(f"DEBUG: Stylesheet file not found at {stylesheet_path}")
-                # Try alternative path
-                stylesheet_path = os.path.join(os.path.dirname(__file__), "styles.qss")
+            # Try multiple potential stylesheet locations
+            stylesheet_paths = [
+                "styles.qss",  # Current directory
+                os.path.join(os.path.dirname(__file__), "styles.qss"),  # Script directory
+                os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "styles.qss"),  # Executable directory
+                os.path.join(getattr(sys, '_MEIPASS', os.path.dirname(__file__)), "styles.qss")  # PyInstaller bundle
+            ]
+            
+            for stylesheet_path in stylesheet_paths:
                 if os.path.exists(stylesheet_path):
                     with open(stylesheet_path, "r") as f:
                         style_content = f.read()
                         self.setStyleSheet(style_content)
-                    print(f"DEBUG: Loaded stylesheet from alternative path: {stylesheet_path}")
+                    print(f"DEBUG: Loaded stylesheet from {stylesheet_path}")
                     self.stylesheet_loaded = True
+                    break
+            
+            if not self.stylesheet_loaded:
+                print("WARNING: Could not find stylesheet file in any expected location")
         except Exception as e:
             print(f"DEBUG: Error loading stylesheet: {e}")
             
@@ -796,15 +797,33 @@ def main():
         print("DEBUG: Initializing MainApp.")
         main_window = MainApp()
         
-        # Check for stylesheet loading
-        if not hasattr(main_window, 'stylesheet_loaded') or not main_window.stylesheet_loaded:
-            # Attempt to load stylesheet again from the base path
-            stylesheet_path = os.path.join(os.path.dirname(__file__), "styles.qss")
-            if os.path.exists(stylesheet_path):
-                with open(stylesheet_path, "r") as f:
-                    app.setStyleSheet(f.read())
-                print(f"DEBUG: Loaded stylesheet globally from {stylesheet_path}")
+        # Check for stylesheet loading and ensure it's applied
+        # First try to find the stylesheet in various locations
+        stylesheet_found = False
+        stylesheet_paths = [
+            "styles.qss",  # Current directory
+            os.path.join(os.path.dirname(__file__), "styles.qss"),  # Script directory
+            os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "styles.qss"),  # Executable directory
+            os.path.join(getattr(sys, '_MEIPASS', os.path.dirname(__file__)), "styles.qss")  # PyInstaller bundle
+        ]
         
+        for path in stylesheet_paths:
+            if os.path.exists(path):
+                print(f"DEBUG: Found stylesheet at: {path}")
+                try:
+                    with open(path, "r") as f:
+                        style_content = f.read()
+                        app.setStyleSheet(style_content)  # Apply globally
+                        main_window.setStyleSheet(style_content)  # Apply to main window
+                    print(f"DEBUG: Successfully applied stylesheet from {path}")
+                    stylesheet_found = True
+                    break
+                except Exception as e:
+                    print(f"DEBUG: Error loading stylesheet from {path}: {e}")
+        
+        if not stylesheet_found:
+            print("WARNING: Could not find stylesheet file in any expected location")
+            
         # Finish splash and show main window
         splash.finish(main_window)
         main_window.show()
