@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.0",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.5.8 (d71e93c)\n  - - added read me (4cffda8)\n  - - Enhance UI and functionality in main application: improved layout, added status indicators, and refined PDF handling in print tabs. Introduced modern styling and optimized resizing behavior for better user experience. (c99efbe)",
+  "version": "v1.7.1",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.7.0 (28e1acd)\n  - - Refactor stylesheet loading mechanism in MainApp: implemented multiple potential paths for stylesheet retrieval, improved error handling, and ensured global application of styles. Updated build workflow to include stylesheet in packaging. (1725b6c)\n  - - fixing merge (9b27b51)\n  - - fixing commit (7840ec3)\n  - - Refactor StatusIndicator: updated layout margins, replaced custom status light with a simple circle label, and improved text styling. Adjusted stylesheet for consistent appearance and enhanced visual clarity. (eff6106)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.0/PostFlow-v1.7.0.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.0/PostFlow-v1.7.0.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.1/PostFlow-v1.7.1.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.1/PostFlow-v1.7.1.dmg"
   }
 }
