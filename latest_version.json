@@ -1,8 +1,8 @@
 {
-  "version": "v1.5.8",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.5.7 (2111dc7)\n  - - changing darrells number (218367c)",
+  "version": "v1.7.0",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.5.8 (d71e93c)\n  - - added read me (4cffda8)\n  - - Enhance UI and functionality in main application: improved layout, added status indicators, and refined PDF handling in print tabs. Introduced modern styling and optimized resizing behavior for better user experience. (c99efbe)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.5.8/PostFlow-v1.5.8.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.5.8/PostFlow-v1.5.8.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.0/PostFlow-v1.7.0.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.0/PostFlow-v1.7.0.dmg"
   }
 }
