@@ -22,6 +22,8 @@ class PrintTrayTagsTab(QWidget):
         self.doc = None
         self.current_page_index = 0
         self.total_pages = 0
+        self.last_size = None
+        self.resize_timer = None
 
         # Main layout
         self.main_layout = QVBoxLayout(self)
@@ -30,6 +32,7 @@ class PrintTrayTagsTab(QWidget):
         # PDF display area
         self.page_display = QLabel("No PDF loaded")
         self.page_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.page_display.setObjectName("pdfView")
         self.main_layout.addWidget(self.page_display, stretch=1)
 
         # Page number label
@@ -47,27 +50,9 @@ class PrintTrayTagsTab(QWidget):
         self.back_button.clicked.connect(self.previous_page)
         self.next_button.clicked.connect(self.next_page)
 
-        # Style buttons
-        button_style = """
-            QPushButton {
-                background-color: #007BFF;
-                color: white;
-                border: 1px solid #0056b3;
-                border-radius: 8px;
-                padding: 10px 20px;
-                font-size: 16px;
-                min-width: 120px;
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-            QPushButton:disabled {
-                background-color: #cccccc;
-                color: #666666;
-            }
-        """
-        self.back_button.setStyleSheet(button_style)
-        self.next_button.setStyleSheet(button_style)
+        # Navigation buttons are controlled by stylesheet now
+        self.back_button.setEnabled(False)
+        self.next_button.setEnabled(False)
 
         self.navigation_layout.addStretch()
         self.navigation_layout.addWidget(self.back_button)
@@ -78,7 +63,6 @@ class PrintTrayTagsTab(QWidget):
         # Print button (separate row)
         self.print_button = QPushButton("Print Tray Tags")
         self.print_button.clicked.connect(self.print_pdf)
-        self.print_button.setStyleSheet(button_style)
         self.print_layout = QHBoxLayout()
         self.print_layout.addStretch()
         self.print_layout.addWidget(self.print_button)
@@ -105,12 +89,16 @@ class PrintTrayTagsTab(QWidget):
         """Load the PDF file."""
         if not os.path.exists(pdf_path):
             self.show_error(f"PDF file not found: {pdf_path}")
-            self.status_indicator.set_status("Tray Tags", False)  # Red circle for Skid Tags
+            self.status_indicator.set_status("Tray Tags", False)  # Red circle for Tray Tags
             return
         else: 
-            self.status_indicator.set_status("Tray Tags", True)  # Green circle for Skid Tags
+            self.status_indicator.set_status("Tray Tags", True)  # Green circle for Tray Tags
 
         try:
+            # Close previous PDF if open
+            if self.doc:
+                self.doc.close()
+                
             self.doc = fitz.open(pdf_path)
             self.pdf_path = pdf_path
             self.total_pages = len(self.doc)
@@ -140,37 +128,56 @@ class PrintTrayTagsTab(QWidget):
             image = QImage(pixmap.samples, pixmap.width, pixmap.height, pixmap.stride, QImage.Format_RGB888)
             pdf_pixmap = QPixmap.fromImage(image)
 
-            if self.current_os == "Windows":
-                # Windows logic
-                available_width = self.width() - 50
-                available_height = self.height() - 150
-                self.page_display.setFixedSize(available_width, available_height)
-
+            # Get current dimensions once
+            current_width = self.page_display.width()
+            current_height = self.page_display.height()
+            
+            # Only scale if the size is at least 50px in both dimensions (prevents micro-scaling)
+            if current_width > 50 and current_height > 50:
+                # Use consistent scaling approach for all platforms
                 scaled_pixmap = pdf_pixmap.scaled(
-                    available_width,
-                    available_height,
+                    current_width - 20,  # Subtract margin to prevent scrollbar flickering
+                    current_height - 20,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
-            else:
-                # macOS (and other OS) logic
-                scaled_pixmap = pdf_pixmap.scaled(
-                    self.page_display.size(),
-                    Qt.KeepAspectRatio,
-                    Qt.SmoothTransformation
-                )
-
-            self.page_display.setPixmap(scaled_pixmap)
+                self.page_display.setPixmap(scaled_pixmap)
+            
             self.page_label.setText(f"Page {self.current_page_index + 1} of {self.total_pages}")
             self.back_button.setEnabled(self.current_page_index > 0)
             self.next_button.setEnabled(self.current_page_index < self.total_pages - 1)
+            
+            # Remember the current size to avoid unnecessary updates
+            self.last_size = (current_width, current_height)
         except Exception as e:
             self.show_error(f"Error displaying page: {e}")
 
     def resizeEvent(self, event):
-        """Re-render the current page on window resize."""
-        self.update_page()
+        """Handle window resize with debouncing to prevent continuous zooming."""
         super().resizeEvent(event)
+        
+        # Skip if no PDF is loaded
+        if not self.doc:
+            return
+            
+        # Get the new size
+        new_width = self.page_display.width()
+        new_height = self.page_display.height()
+        
+        # Only update if the size change is significant
+        if (not self.last_size or 
+            abs(new_width - self.last_size[0]) > 50 or 
+            abs(new_height - self.last_size[1]) > 50):
+            
+            # Cancel any pending timer
+            if self.resize_timer:
+                self.resize_timer.stop()
+                
+            # Set a timer to update the page after resizing stops
+            self.resize_timer = QTimer()
+            self.resize_timer.setSingleShot(True)
+            self.resize_timer.timeout.connect(self.update_page)
+            self.resize_timer.start(300)  # 300ms delay
 
     def next_page(self):
         """Go to the next page."""
@@ -212,7 +219,7 @@ class PrintTrayTagsTab(QWidget):
             self.show_error(f"File not found: {self.pdf_path}")
         except OSError as e:
             # More informative error handling for WinError 1155
-            if e.winerror == 1155:
+            if hasattr(e, 'winerror') and e.winerror == 1155:
                 self.show_error(
                     "No application is associated with PDF files for this operation. "
                     "Please install a PDF viewer and set it as default."
@@ -229,16 +236,19 @@ class PrintTrayTagsTab(QWidget):
 
     def clear_pdf(self):
         """Clear the displayed PDF in the Tray Tags tab."""
+        if self.doc:
+            self.doc.close()
+            self.doc = None
+            
         self.page_display.clear()  # Clear the PDF display area
         self.page_display.setText("No PDF loaded")  # Reset to the default message
         self.page_label.setText("Page 0 of 0")  # Reset the page label
         self.back_button.setEnabled(False)  # Disable the Back button
         self.next_button.setEnabled(False)  # Disable the Next button
         self.pdf_path = None  # Clear the loaded PDF path
-        self.doc = None  # Clear the document
         self.current_page_index = 0
         self.total_pages = 0
-        print("Skid Tags tab reset.")
+        print("Tray Tags tab reset.")
 
     def reset(self):
         """Clear the displayed PDF and reset the tab."""

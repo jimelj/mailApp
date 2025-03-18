@@ -4,7 +4,7 @@ import platform
 import shutil
 from datetime import datetime 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen, QComboBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen, QComboBox, QGroupBox, QFrame
 from PySide6.QtGui import QGuiApplication, QPixmap
 import pandas as pd
 from StatusIndicator import StatusIndicator
@@ -252,54 +252,65 @@ class MainTab(QWidget):
         self.money_tab = money_tab
         self.trucking_tab = trucking_tab
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(20, 20, 20, 20)
+        self.layout.setSpacing(15)
 
-        # Welcome and instructions
-        self.layout.addWidget(QLabel("Welcome to the Mail Data Management System!"))
-        self.layout.addWidget(QLabel("Use this tab to upload ZIP files and manage data."))
+        # Welcome and instructions with better styling
+        welcome_label = QLabel("Welcome to PostFlow")
+        welcome_label.setObjectName("welcomeLabel")
+        self.layout.addWidget(welcome_label)
+        
+        instruction_label = QLabel("Use this application to manage mail data, print tags, and track finances.")
+        instruction_label.setObjectName("instructionLabel")
+        self.layout.addWidget(instruction_label)
 
-        # # Upload Button
-        # self.upload_button = QPushButton("Upload ZIP File")
-        # self.upload_button.clicked.connect(self.upload_zip)
+        # Add a horizontal separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("background-color: #cccccc;")
+        self.layout.addWidget(separator)
 
-        # Dropdown for ZIP file selection
+        # Create a group box for file selection
+        file_group = QGroupBox("ZIP File Selection")
+        file_layout = QVBoxLayout()
+        
+        # Dropdown for ZIP file selection with label
+        file_layout.addWidget(QLabel("Select a MailDat ZIP file:"))
         self.zip_dropdown = QComboBox()
         self.zip_dropdown.currentIndexChanged.connect(self.select_zip_file)
-        self.layout.addWidget(self.zip_dropdown)
+        file_layout.addWidget(self.zip_dropdown)
+        
+        # Refresh button for ZIP files
+        refresh_button = QPushButton("Refresh ZIP Files")
+        refresh_button.clicked.connect(self.fetch_zip_files)
+        refresh_button.setMaximumWidth(200)
+        file_layout.addWidget(refresh_button)
+        
+        file_group.setLayout(file_layout)
+        self.layout.addWidget(file_group)
 
-        # Date Display Label (initially hidden)
-        # Add date label for top-right display
-        self.date_label = QLabel(parent=self)  # Use the parent main window
-        self.date_label.setStyleSheet("color: green; font-size: 36px; font-weight: bold;")
-        self.date_label.setAlignment(Qt.AlignRight)
-        self.date_label.hide()  # Hide initially
-
-        # # Button Styling
-        # button_style = """
-        #     QPushButton {
-        #         background-color: #007BFF;
-        #         color: white;
-        #         border: 1px solid #0056b3;
-        #         border-radius: 8px;
-        #         padding: 10px 20px;
-        #         font-size: 16px;
-        #         min-width: 120px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #0056b3;
-        #     }
-        #     QPushButton:disabled {
-        #         background-color: #cccccc;
-        #         color: #666666;
-        #     }
-        # """
-        # self.upload_button.setStyleSheet(button_style)
-
-        # self.layout.addWidget(self.upload_button)
-
+        # Status group
+        status_group = QGroupBox("Status")
+        status_layout = QVBoxLayout()
+        
         # Feedback Label
         self.feedback_label = QLabel("")
-        self.feedback_label.setStyleSheet("color: gray; font-size: 14px;")
-        self.layout.addWidget(self.feedback_label)
+        self.feedback_label.setWordWrap(True)
+        status_layout.addWidget(self.feedback_label)
+        
+        status_group.setLayout(status_layout)
+        self.layout.addWidget(status_group)
+        
+        # Add stretch to push everything up
+        self.layout.addStretch(1)
+
+        # Date Display Label with better positioning
+        self.date_label = QLabel(parent=self)
+        self.date_label.setObjectName("dateLabel")
+        self.date_label.setStyleSheet("color: #009933; font-size: 22pt; font-weight: bold;")
+        self.date_label.setAlignment(Qt.AlignRight)
+        self.date_label.hide()  # Hide initially
 
         # Fetch ZIP files from FTP and populate dropdown
         self.fetch_zip_files()
@@ -317,44 +328,34 @@ class MainTab(QWidget):
             zip_files = fetch_latest_ftp_files()  # This should return a list of ZIP filenames
             self.zip_dropdown.addItems(zip_files)
             self.feedback_label.setText("Fetched latest ZIP files successfully!")
-            self.feedback_label.setStyleSheet("color: green;")
+            self.feedback_label.setStyleSheet("color: #009933;")
         except Exception as e:
             self.feedback_label.setText(f"Error fetching ZIP files: {e}")
-            self.feedback_label.setStyleSheet("color: red;")
+            self.feedback_label.setStyleSheet("color: #cc3300;")
 
     def select_zip_file(self):
-        self.reset_all_tabs()
         """Handle ZIP file selection and reset data."""
+        self.reset_all_tabs()
         selected_file = self.zip_dropdown.currentText()
         if selected_file == "Please select a MailDat file":
             return  # Do nothing if the default option is selected
 
         if selected_file:
             try:
-                # Reset all tabs before processing the new ZIP file
-                #  # Reset all tabs
-                # self.csm_tab.reset()
-                # self.skid_tags_tab.reset()
-                # self.tray_tags_tab.reset()
-                # print("All tabs reset.")
                 # Download and process the selected ZIP file
                 from util import download_file_from_ftp  # Assuming this function exists in util.py
 
+                self.feedback_label.setText(f"Downloading {selected_file}...")
+                self.feedback_label.setStyleSheet("color: #0066cc;")
+                
                 local_file_path = download_file_from_ftp(selected_file)  # Download the selected file
+                
+                self.feedback_label.setText(f"Processing {selected_file}...")
                 df_filtered = parse_zip_and_prepare_data(local_file_path)
 
                 # Update tabs with new data
                 self.csm_tab.update_data(df_filtered)
 
-            #     # Notify MoneyTab to reload the report
-            #     extracted_report_path = os.path.join("data", "extracted", "Reports", "RptList.txt")
-            #     if os.path.exists(extracted_report_path):
-            #         self.money_tab.reload_report(extracted_report_path)
-            # except Exception as e:
-            #     self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
-            #     self.feedback_label.setStyleSheet("color: red;")
-
-                # # Notify MoneyTab to reload the report
                 extracted_report_path = os.path.join("data", "extracted", "Reports", "RptList.txt")
                 if os.path.exists(extracted_report_path):
                     print(f"DEBUG: Notifying MoneyTab to reload report: {extracted_report_path}")
@@ -365,7 +366,7 @@ class MainTab(QWidget):
                 # Extract the date from the file name
                 date_from_file = self.extract_date_from_file(local_file_path)
                 self.feedback_label.setText(f"Loaded data from {selected_file} (IHD: {date_from_file})")
-                self.feedback_label.setStyleSheet("color: green;")
+                self.feedback_label.setStyleSheet("color: #009933;")
 
                 # Update and show the date label
                 self.date_label.setText(f"IHD: {date_from_file}")
@@ -387,37 +388,27 @@ class MainTab(QWidget):
                 skid_tags_pdf_path = os.path.join(extracted_path, "Reports", "SkidTags.pdf")
                 if os.path.exists(skid_tags_pdf_path):
                     self.skid_tags_tab.load_pdf(skid_tags_pdf_path)
-                    self.feedback_label.setText("SkidTags.pdf loaded successfully!")
-                    self.feedback_label.setStyleSheet("color: green;")
                 else:
-                    self.feedback_label.setText("SkidTags.pdf not found in the extracted ZIP file.")
-                    self.feedback_label.setStyleSheet("color: red;")
+                    print("SkidTags.pdf not found in the extracted ZIP file.")
 
                 # Load TrayTags.pdf if it exists
                 tray_tags_pdf_path = os.path.join(extracted_path, "Reports", "TrayTags.pdf")
                 if os.path.exists(tray_tags_pdf_path):
                     self.tray_tags_tab.load_pdf(tray_tags_pdf_path)
-                    self.feedback_label.setText("TrayTags.pdf loaded successfully!")
-                    self.feedback_label.setStyleSheet("color: green;")
                 else:
-                    self.feedback_label.setText("TrayTags.pdf not found in the extracted ZIP file.")
-                    self.feedback_label.setStyleSheet("color: red;")
+                    print("TrayTags.pdf not found in the extracted ZIP file.")
 
-            # Update ZIP status
+                # Update ZIP status
                 self.status_indicator.set_status("ZIP", True if os.path.exists(local_file_path) else False)
 
             except Exception as e:
                 self.status_indicator.set_status("ZIP", False)
-
-            except Exception as e:
                 self.feedback_label.setText(f"Error processing file {selected_file}: {e}")
-                self.feedback_label.setStyleSheet("color: red;")
+                self.feedback_label.setStyleSheet("color: #cc3300;")
 
     def reset_all_tabs(self):
         data_path = "data/extracted"
         
-        
-
         """Reset all tabs to ensure no lingering data remains."""
         if hasattr(self, 'csm_tab'):
             self.csm_tab.reset()
@@ -434,11 +425,8 @@ class MainTab(QWidget):
         # Reset the status indicators
         self.status_indicator.reset_status()
 
-
         clean_backend_files()
-        # clean_backend_files_with_move(data_path)
         
-
     def extract_date_from_file(self, file_path):
         """Extract the date from the file name in MM-DD-YY format."""
         try:
@@ -447,17 +435,6 @@ class MainTab(QWidget):
             return datetime.strptime(date_part, "%m-%d-%y").strftime("%B %d, %Y")
         except Exception:
             return "Unknown Date"   
-
-    # def clean_up_directories(self):
-    #     """Delete all contents inside the 'data/extracted' directory."""
-    #     extracted_directory = "data/extracted"
-    #     if os.path.exists(extracted_directory):
-    #         shutil.rmtree(extracted_directory)
-    #         print(f"Cleaned up directory: {extracted_directory}")
-    #     else:
-    #         print(f"No directory to clean: {extracted_directory}")
-
-
 
     def resizeEvent(self, event):
         """Reposition the date label on window resize."""
@@ -560,8 +537,10 @@ class MainApp(QMainWindow):
         super().__init__()
         print("DEBUG: Initializing MainApp...")
         self.setWindowTitle("PostFlow - Mail Data Management")
-        screen = QApplication.primaryScreen().availableGeometry()
-
+        
+        # Load the application stylesheet
+        self.load_stylesheet()
+        
         # Ensure the window size fits within the screen dimensions
         screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
         screen_width = screen_geometry.width()
@@ -578,26 +557,36 @@ class MainApp(QMainWindow):
         self.statusBar().addPermanentWidget(self.status_indicator)
         print("DEBUG: StatusIndicator added to status bar.")
 
-        # # Initialize and add the StatusIndicator
-        # self.status_indicator = StatusIndicator(self)
-        # self.statusBar().addPermanentWidget(self.status_indicator)
-        # self.status_indicator.setVisible(True)
-        # self.status_indicator.adjustSize()
-        # print("DEBUG: StatusIndicator added to status bar.")
+        # Create a modern layout
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setSpacing(5)
 
-        # Initialize the status bar and increase its height
-        # self.statusBar().setStyleSheet("QStatusBar { min-height: 150px; }")
+        # Create app header with logo
+        self.header_widget = QWidget()
+        self.header_layout = QVBoxLayout(self.header_widget)
+        self.header_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # App title
+        self.app_title = QLabel("PostFlow")
+        self.app_title.setStyleSheet("font-size: 24pt; font-weight: bold; color: #0066cc;")
+        self.header_layout.addWidget(self.app_title)
+        
+        # Add a separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("background-color: #cccccc;")
+        self.header_layout.addWidget(separator)
+        
+        self.main_layout.addWidget(self.header_widget)
 
-        # Add the StatusIndicator and make it larger
-        # self.status_indicator = StatusIndicator(self)
-        # self.status_indicator.setFixedHeight(40)  # Adjust size
-        # self.status_indicator.setStyleSheet("background-color: yellow; border: 1px solid black;")
-        # self.statusBar().addPermanentWidget(self.status_indicator)
-
-
-
+        # Tab widget
         self.tab_widget = QTabWidget()
-        self.setCentralWidget(self.tab_widget)
+        self.tab_widget.setDocumentMode(True)  # More modern look for tabs
+        self.main_layout.addWidget(self.tab_widget)
 
         # Create the tabs
         self.csm_tab = CSMTab(pd.DataFrame())  # Use the existing implementation of CSMTab
@@ -607,13 +596,52 @@ class MainApp(QMainWindow):
         self.trucking_tab = TruckingTab()
         self.main_tab = MainTab(self.status_indicator, self.csm_tab, self.skid_tags_tab, self.tray_tags_tab, self.money_tab, self.trucking_tab)
 
-        # Add tabs to the application
-        self.tab_widget.addTab(self.main_tab, "Main")
-        self.tab_widget.addTab(self.csm_tab, "CSM")
-        self.tab_widget.addTab(self.skid_tags_tab, "Print Skid Tags")
-        self.tab_widget.addTab(self.tray_tags_tab, "Print Tray Tags")
-        self.tab_widget.addTab(self.money_tab, "USPS $")
-        self.tab_widget.addTab(self.trucking_tab, "Trucking 🚚")
+        # Add tabs to the application with icons (text-based for now)
+        self.tab_widget.addTab(self.main_tab, "🏠 Home")
+        self.tab_widget.addTab(self.csm_tab, "📋 CSM")
+        self.tab_widget.addTab(self.skid_tags_tab, "🏷️ Print Skid Tags")
+        self.tab_widget.addTab(self.tray_tags_tab, "🏷️ Print Tray Tags")
+        self.tab_widget.addTab(self.money_tab, "💰 USPS $")
+        self.tab_widget.addTab(self.trucking_tab, "🚚 Trucking")
+        
+        # Connect tab change signal
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+
+    def load_stylesheet(self):
+        """Load the application stylesheet."""
+        self.stylesheet_loaded = False
+        try:
+            # Try to load stylesheet file
+            stylesheet_path = "styles.qss"
+            if os.path.exists(stylesheet_path):
+                with open(stylesheet_path, "r") as f:
+                    style_content = f.read()
+                    self.setStyleSheet(style_content)
+                print(f"DEBUG: Loaded stylesheet from {stylesheet_path}")
+                self.stylesheet_loaded = True
+            else:
+                print(f"DEBUG: Stylesheet file not found at {stylesheet_path}")
+                # Try alternative path
+                stylesheet_path = os.path.join(os.path.dirname(__file__), "styles.qss")
+                if os.path.exists(stylesheet_path):
+                    with open(stylesheet_path, "r") as f:
+                        style_content = f.read()
+                        self.setStyleSheet(style_content)
+                    print(f"DEBUG: Loaded stylesheet from alternative path: {stylesheet_path}")
+                    self.stylesheet_loaded = True
+        except Exception as e:
+            print(f"DEBUG: Error loading stylesheet: {e}")
+            
+    def on_tab_changed(self, index):
+        """Handle tab change events."""
+        current_tab = self.tab_widget.widget(index)
+        # Refresh or update the current tab if needed
+        if hasattr(current_tab, 'refresh'):
+            current_tab.refresh()
+        
+        # Update window title to include current tab name
+        tab_name = self.tab_widget.tabText(index)
+        self.setWindowTitle(f"PostFlow - {tab_name}")
 
     def closeEvent(self, event):
         """
@@ -631,13 +659,6 @@ class MainApp(QMainWindow):
             event.accept()
             print("DEBUG: Event accepted, closing application.")
 
-    def closeEvent(self, event):
-        """Clean up directories when the application closes."""
-        self.clean_up_directories()
-        self.clean_up_temporary_directories()
-        event.accept()
-
-    
     def clean_up_directories(self):
             """Delete all contents inside the 'data' directory."""
             script_directory = Path(__file__).parent
@@ -754,7 +775,10 @@ class MainApp(QMainWindow):
 def main():
     try:
         app = QApplication(sys.argv)
-
+        
+        # Set application-wide attributes
+        app.setStyle('Fusion')  # Use Fusion style for a modern look
+        
         # Show splash screen
         print(f"DEBUG: Using splash screen from path: {splash_screen_path}")
         splash_pix = QPixmap(splash_screen_path).scaled(800, 600, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -768,16 +792,26 @@ def main():
         # Perform initialization tasks
         perform_initialization_tasks(splash)
 
-        # Show main window
+        # Create and show main window
         print("DEBUG: Initializing MainApp.")
         main_window = MainApp()
+        
+        # Check for stylesheet loading
+        if not hasattr(main_window, 'stylesheet_loaded') or not main_window.stylesheet_loaded:
+            # Attempt to load stylesheet again from the base path
+            stylesheet_path = os.path.join(os.path.dirname(__file__), "styles.qss")
+            if os.path.exists(stylesheet_path):
+                with open(stylesheet_path, "r") as f:
+                    app.setStyleSheet(f.read())
+                print(f"DEBUG: Loaded stylesheet globally from {stylesheet_path}")
+        
+        # Finish splash and show main window
         splash.finish(main_window)
         main_window.show()
         print("DEBUG: MainApp shown and running.")
+        
+        # Check for updates
         updater.check_for_updates()
-
-        # print(f"DEBUG: StatusIndicator geometry: {main.status_indicator.geometry()}")
-
 
         sys.exit(app.exec())
 
@@ -793,17 +827,29 @@ def perform_initialization_tasks(splash):
     Simulates initialization tasks with splash screen updates.
     """
     tasks = [
-        "Initializing modules...",
+        "Initializing application...",
         "Loading resources...",
         "Connecting to services...",
+        "Setting up interface...",
         "Finalizing setup..."
     ]
 
-    for task in tasks:
-        print(f"DEBUG: {task}")
-        splash.showMessage(task, Qt.AlignBottom | Qt.AlignCenter, Qt.white)
+    # Style the splash screen text
+    splash.setStyleSheet("""
+        QSplashScreen {
+            color: white;
+            font-size: 14pt;
+            font-weight: bold;
+        }
+    """)
+
+    for i, task in enumerate(tasks):
+        progress = int((i + 1) / len(tasks) * 100)
+        message = f"{task} ({progress}%)"
+        print(f"DEBUG: {message}")
+        splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter, Qt.white)
         QApplication.processEvents()  # Allow UI updates during long-running tasks
-        sleep(1)  # Simulate task duration
+        sleep(0.8)  # Shorter delay for a more responsive feel
 
 
 

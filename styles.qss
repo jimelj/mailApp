@@ -1,0 +1,298 @@
+/* Main Application Styling */
+QMainWindow, QWidget {
+    background-color: #f5f5f7;
+    color: #333333;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-size: 11pt;
+}
+
+/* Status Bar Styling */
+QStatusBar {
+    background-color: #e5e5e7;
+    color: #555555;
+    border-top: 1px solid #cccccc;
+    min-height: 24px;
+    padding: 0 8px;
+}
+
+/* Tab Widget Styling */
+QTabWidget::pane {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    border-radius: 4px;
+}
+
+QTabBar::tab {
+    background-color: #e0e0e5;
+    color: #555555;
+    padding: 8px 16px;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffffff;
+    color: #0066cc;
+    border-bottom: 1px solid #ffffff;
+    font-weight: bold;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #e8e8ee;
+}
+
+/* Button Styling */
+QPushButton {
+    background-color: #0066cc;
+    color: white;
+    border: 1px solid #0055aa;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #0055aa;
+}
+
+QPushButton:pressed {
+    background-color: #004499;
+}
+
+QPushButton:disabled {
+    background-color: #cccccc;
+    color: #888888;
+    border: 1px solid #aaaaaa;
+}
+
+/* ComboBox Styling */
+QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    padding: 6px 12px;
+    padding-right: 20px;  /* Space for the dropdown arrow */
+    min-width: 6em;
+    font-size: 11pt;
+    selection-background-color: #0066cc;
+    selection-color: #ffffff;
+}
+
+QComboBox:hover {
+    border: 1px solid #0066cc;
+    background-color: #f5f5f7;
+}
+
+QComboBox:focus {
+    border: 1px solid #0066cc;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left: 1px solid #cccccc;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: #f0f0f0;
+}
+
+QComboBox::drop-down:hover {
+    background-color: #e0e0e0;
+}
+
+QComboBox::down-arrow {
+    width: 14px;
+    height: 14px;
+    color: #555555;
+    image: none;  /* Remove any previously set image */
+}
+
+QComboBox::down-arrow:on {
+    /* When the dropdown is open, slightly shift the arrow */
+    top: 1px;
+    left: 1px;
+}
+
+/* Add a triangle as dropdown indicator using custom content */
+QComboBox::down-arrow {
+    color: #555555;
+    font: 12px;
+    border-top: 5px solid #555555;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    width: 0;
+    height: 0;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    selection-background-color: #0066cc;
+    selection-color: #ffffff;
+    outline: 0px;   /* Remove focus outline */
+    padding: 5px;
+}
+
+QComboBox QAbstractItemView::item {
+    height: 25px;  /* Taller items for better clickability */
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #e8e8ee;
+}
+
+/* Label Styling */
+QLabel {
+    color: #333333;
+}
+
+/* Specific styling for app title / welcome labels */
+QLabel#welcomeLabel {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 10px;
+}
+
+QLabel#instructionLabel {
+    font-size: 12pt;
+    color: #555555;
+    margin-bottom: 15px;
+}
+
+/* Table Widget Styling */
+QTableWidget {
+    background-color: #ffffff;
+    alternate-background-color: #f7f7f9;
+    gridline-color: #dddddd;
+    selection-background-color: #0066cc;
+    selection-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+QTableWidget::item {
+    padding: 4px;
+}
+
+QTableWidget::item:selected {
+    background-color: #0066cc;
+    color: white;
+}
+
+QHeaderView::section {
+    background-color: #e0e0e5;
+    color: #333333;
+    padding: 6px;
+    border: 1px solid #cccccc;
+    font-weight: bold;
+}
+
+/* ScrollBar Styling */
+QScrollBar:vertical {
+    border: none;
+    background: #f0f0f0;
+    width: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #cccccc;
+    min-height: 20px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #aaaaaa;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background: #f0f0f0;
+    height: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #cccccc;
+    min-width: 20px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #aaaaaa;
+}
+
+/* LineEdit Styling */
+QLineEdit {
+    padding: 6px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+QLineEdit:focus {
+    border: 1px solid #0066cc;
+}
+
+/* GroupBox Styling */
+QGroupBox {
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 5px;
+    color: #0066cc;
+}
+
+/* Specialized Styling */
+.date-label {
+    color: #009933;
+    font-size: 22pt;
+    font-weight: bold;
+}
+
+.feedback-positive {
+    color: #009933;
+}
+
+.feedback-negative {
+    color: #cc3300;
+}
+
+/* PDF Viewer Styling */
+#pdfView {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+/* Money Tab Specific Styling */
+#moneyTableWidget {
+    font-family: 'Courier New', monospace;
+}
+
+/* StatusIndicator Styling */
+#statusIndicator {
+    min-height: 24px;
+    max-height: 24px;
+    padding: 2px;
+    margin: 2px;
+}
+
+#statusIndicator QLabel {
+    border-radius: 4px;
+    padding: 2px 8px;
+} 
