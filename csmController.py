@@ -601,7 +601,7 @@ class CSMTab(QWidget):
                 "Pieces": "",
                 "Weight": self.df_filtered["Total Weight"].str.replace(" LBS", "", regex=False),
                 "Pickup Date*": (
-                    pd.to_datetime(self.df_filtered["Scheduled Induction Start Date"]) + pd.Timedelta(days=1)
+                    pd.to_datetime(self.df_filtered["Scheduled Induction Start Date"])
                     ).dt.strftime("%Y-%m-%d") + " 3:00 AM",
                 "Driver ID": "",
                 "Order Comments": "",
@@ -627,7 +627,7 @@ class CSMTab(QWidget):
             ["Destination Name*"]
             ] = ["SCF-MID ISLAND         NY"]
             capstone_df.loc[
-            capstone_df["Reference 2"].str.contains(r"CBATW1", case=False, na=False),
+            capstone_df["Reference 2"].str.contains(r"CBATT1", case=False, na=False),
             ["Order Type*"]
             ] = [50]
             # Drop rows where 'Parcel Barcode' starts with "11"
