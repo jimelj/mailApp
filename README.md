@@ -107,8 +107,8 @@ The built application will be available in the `dist` directory.
 
 ## License
 
-[Specify your license here]
+MIT
 
 ## Support
 
-For support, please [specify contact method or raise an issue in the repository] 
+For support, please JJOSEPH@cbaol.com
