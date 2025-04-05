@@ -617,11 +617,26 @@ class CSMTab(QWidget):
             # Convert to DataFrame
             capstone_df = pd.DataFrame(capstone_data)
 
+            # Adjust Pickup Date based on Reference 2 value
+            # If Reference 2 starts with CBAM, keep the date as is
+            # If Reference 2 starts with CBAT, add 1 day to the date
+            def adjust_pickup_date(row):
+                ref2 = str(row['Reference 2']).upper()
+                if ref2.startswith('CBAT'):
+                    # Parse the current date, add 1 day, and format it back
+                    date_part = row['Pickup Date*'].split(' ')[0]
+                    time_part = row['Pickup Date*'].split(' ')[1]
+                    new_date = (pd.to_datetime(date_part) + pd.Timedelta(days=1)).strftime('%Y-%m-%d')
+                    return f"{new_date} {time_part}"
+                return row['Pickup Date*']  # For CBAM or anything else, keep as is
+            
+            capstone_df['Pickup Date*'] = capstone_df.apply(adjust_pickup_date, axis=1)
+
             # Adjust Order Type for outlier cases where "Destination Name*" contains "SCF"
             capstone_df.loc[
             capstone_df["Destination Address*"].str.contains(r"160 DURYEA RD", case=False, na=False),
             ["Order Type*", "Reference 2"]
-            ] = [504, "CBAT99"]
+            ] = [504, "CBAM99"]
             capstone_df.loc[
             capstone_df["Order Type*"].astype(str).str.contains(r"504", case=False, na=False),
             ["Destination Name*"]
