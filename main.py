@@ -4,7 +4,7 @@ import platform
 import shutil
 from datetime import datetime 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen, QComboBox, QGroupBox, QFrame
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QLabel, QPushButton, QFileDialog, QSplashScreen, QComboBox, QGroupBox, QFrame, QHBoxLayout, QProgressBar
 from PySide6.QtGui import QGuiApplication, QPixmap
 import pandas as pd
 from StatusIndicator import StatusIndicator
@@ -271,8 +271,67 @@ class MainTab(QWidget):
         separator.setStyleSheet("background-color: #cccccc;")
         self.layout.addWidget(separator)
 
-        # Create a group box for file selection
-        file_group = QGroupBox("ZIP File Selection")
+        # Create a group box for processing mode selection
+        mode_group = QGroupBox("Processing Mode")
+        mode_layout = QHBoxLayout()
+        
+        # Radio buttons for processing mode
+        self.individual_mode_radio = QPushButton("Select Individual File")
+        self.individual_mode_radio.setCheckable(True)
+        self.individual_mode_radio.setChecked(True)  # Default mode
+        self.individual_mode_radio.clicked.connect(self.switch_to_individual_mode)
+        
+        self.batch_mode_radio = QPushButton("Load All Files")
+        self.batch_mode_radio.setCheckable(True)
+        self.batch_mode_radio.clicked.connect(self.switch_to_batch_mode)
+        
+        self.historical_mode_radio = QPushButton("Access Historical Data")
+        self.historical_mode_radio.setCheckable(True)
+        self.historical_mode_radio.clicked.connect(self.switch_to_historical_mode)
+        
+        # Style radio buttons as segmented control
+        mode_buttons_style = """
+            QPushButton {
+                border: 1px solid #0066cc;
+                border-radius: 0px;
+                padding: 8px 16px;
+                background-color: white;
+                color: #0066cc;
+            }
+            QPushButton:checked {
+                background-color: #0066cc;
+                color: white;
+            }
+            QPushButton:hover:!checked {
+                background-color: #f0f8ff;
+            }
+        """
+        self.individual_mode_radio.setStyleSheet(mode_buttons_style)
+        self.batch_mode_radio.setStyleSheet(mode_buttons_style)
+        self.historical_mode_radio.setStyleSheet(mode_buttons_style)
+        
+        # Create a widget for the button group to apply rounded corners to the group
+        button_group_widget = QWidget()
+        button_group_layout = QHBoxLayout(button_group_widget)
+        button_group_layout.setContentsMargins(0, 0, 0, 0)
+        button_group_layout.setSpacing(0)
+        button_group_layout.addWidget(self.individual_mode_radio)
+        button_group_layout.addWidget(self.batch_mode_radio)
+        button_group_layout.addWidget(self.historical_mode_radio)
+        
+        # Set first and last button corner styles
+        self.individual_mode_radio.setStyleSheet(self.individual_mode_radio.styleSheet() + 
+                                             "border-top-left-radius: 4px; border-bottom-left-radius: 4px;")
+        self.historical_mode_radio.setStyleSheet(self.historical_mode_radio.styleSheet() + 
+                                            "border-top-right-radius: 4px; border-bottom-right-radius: 4px;")
+        
+        mode_layout.addWidget(button_group_widget)
+        mode_layout.addStretch()
+        mode_group.setLayout(mode_layout)
+        self.layout.addWidget(mode_group)
+
+        # Create a group box for file selection (individual & historical modes)
+        self.file_selection_group = QGroupBox("ZIP File Selection")
         file_layout = QVBoxLayout()
         
         # Dropdown for ZIP file selection with label
@@ -281,14 +340,49 @@ class MainTab(QWidget):
         self.zip_dropdown.currentIndexChanged.connect(self.select_zip_file)
         file_layout.addWidget(self.zip_dropdown)
         
-        # Refresh button for ZIP files
-        refresh_button = QPushButton("Refresh ZIP Files")
-        refresh_button.clicked.connect(self.fetch_zip_files)
-        refresh_button.setMaximumWidth(200)
-        file_layout.addWidget(refresh_button)
+        # Refresh buttons
+        refresh_layout = QHBoxLayout()
+        self.refresh_button = QPushButton("Refresh ZIP Files")
+        self.refresh_button.clicked.connect(self.fetch_zip_files)
+        self.refresh_button.setMaximumWidth(200)
         
-        file_group.setLayout(file_layout)
-        self.layout.addWidget(file_group)
+        self.refresh_historical_button = QPushButton("Refresh Historical Files")
+        self.refresh_historical_button.clicked.connect(self.fetch_historical_files)
+        self.refresh_historical_button.setMaximumWidth(200)
+        self.refresh_historical_button.hide()  # Hidden by default
+        
+        refresh_layout.addWidget(self.refresh_button)
+        refresh_layout.addWidget(self.refresh_historical_button)
+        refresh_layout.addStretch()
+        
+        file_layout.addLayout(refresh_layout)
+        self.file_selection_group.setLayout(file_layout)
+        self.layout.addWidget(self.file_selection_group)
+        
+        # Create a group box for batch processing (initially hidden)
+        self.batch_processing_group = QGroupBox("Batch Processing")
+        batch_layout = QVBoxLayout()
+        
+        # Progress information
+        self.batch_status_label = QLabel("Click 'Process All Files' to download and process all recent ZIP files.")
+        self.batch_status_label.setWordWrap(True)
+        batch_layout.addWidget(self.batch_status_label)
+        
+        # Progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        batch_layout.addWidget(self.progress_bar)
+        
+        # Process button
+        self.process_all_button = QPushButton("Process All Files")
+        self.process_all_button.clicked.connect(self.process_all_files)
+        self.process_all_button.setMaximumWidth(200)
+        batch_layout.addWidget(self.process_all_button)
+        
+        self.batch_processing_group.setLayout(batch_layout)
+        self.batch_processing_group.hide()  # Hidden by default
+        self.layout.addWidget(self.batch_processing_group)
 
         # Status group
         status_group = QGroupBox("Status")
@@ -311,12 +405,81 @@ class MainTab(QWidget):
         self.date_label.setStyleSheet("color: #009933; font-size: 22pt; font-weight: bold;")
         self.date_label.setAlignment(Qt.AlignRight)
         self.date_label.hide()  # Hide initially
-
-        # Fetch ZIP files from FTP and populate dropdown
+        
+        # Current mode tracking
+        self.current_mode = "individual"  # Default mode
+        
+        # Initialize with individual file selection mode
         self.fetch_zip_files()
 
+    def switch_to_individual_mode(self):
+        """Switch to individual file selection mode."""
+        self.reset_selection_ui()
+        self.current_mode = "individual"
+        
+        # Ensure only this button is checked
+        self.individual_mode_radio.setChecked(True)
+        self.batch_mode_radio.setChecked(False)
+        self.historical_mode_radio.setChecked(False)
+        
+        # Update UI
+        self.file_selection_group.setTitle("ZIP File Selection")
+        self.file_selection_group.show()
+        self.batch_processing_group.hide()
+        self.refresh_button.show()
+        self.refresh_historical_button.hide()
+        
+        # Fetch regular ZIP files
+        self.fetch_zip_files()
+
+    def switch_to_batch_mode(self):
+        """Switch to batch processing mode."""
+        self.reset_selection_ui()
+        self.current_mode = "batch"
+        
+        # Ensure only this button is checked
+        self.individual_mode_radio.setChecked(False)
+        self.batch_mode_radio.setChecked(True)
+        self.historical_mode_radio.setChecked(False)
+        
+        # Update UI
+        self.file_selection_group.hide()
+        self.batch_processing_group.show()
+        
+        # Reset batch processing UI
+        self.progress_bar.setValue(0)
+        self.batch_status_label.setText("Click 'Process All Files' to download and process all recent ZIP files.")
+
+    def switch_to_historical_mode(self):
+        """Switch to historical data access mode."""
+        self.reset_selection_ui()
+        self.current_mode = "historical"
+        
+        # Ensure only this button is checked
+        self.individual_mode_radio.setChecked(False)
+        self.batch_mode_radio.setChecked(False)
+        self.historical_mode_radio.setChecked(True)
+        
+        # Update UI
+        self.file_selection_group.setTitle("Historical ZIP File Selection")
+        self.file_selection_group.show()
+        self.batch_processing_group.hide()
+        self.refresh_button.hide()
+        self.refresh_historical_button.show()
+        
+        # Fetch historical ZIP files
+        self.fetch_historical_files()
+
+    def reset_selection_ui(self):
+        """Reset UI elements related to file selection."""
+        self.zip_dropdown.clear()
+        self.zip_dropdown.addItem("Please select a MailDat file")
+        self.feedback_label.setText("")
+        self.date_label.hide()
+        self.reset_all_tabs()
+
     def fetch_zip_files(self):
-        """Fetch the latest ZIP files from the FTP server."""
+        """Fetch the latest ZIP files from the FTP server for individual selection."""
         from util import fetch_latest_ftp_files  # Assuming this function exists in util.py
 
         try:
@@ -333,22 +496,138 @@ class MainTab(QWidget):
             self.feedback_label.setText(f"Error fetching ZIP files: {e}")
             self.feedback_label.setStyleSheet("color: #cc3300;")
 
+    def fetch_historical_files(self):
+        """Fetch historical ZIP files from the backup folder on the FTP server."""
+        from util import fetch_backup_ftp_files  # New function to fetch from backup folder
+
+        try:
+            # Clear the dropdown before adding new items
+            self.zip_dropdown.clear()
+
+            # Add the default option
+            self.zip_dropdown.addItem("Please select a historical MailDat file")
+            zip_files = fetch_backup_ftp_files()  # Fetch files from backup folder
+            self.zip_dropdown.addItems(zip_files)
+            self.feedback_label.setText("Fetched historical ZIP files successfully!")
+            self.feedback_label.setStyleSheet("color: #009933;")
+        except Exception as e:
+            self.feedback_label.setText(f"Error fetching historical ZIP files: {e}")
+            self.feedback_label.setStyleSheet("color: #cc3300;")
+
+    def process_all_files(self):
+        """Process all available ZIP files in batch mode."""
+        from util import download_and_process_all_files
+        
+        # Reset state
+        self.reset_all_tabs()
+        self.progress_bar.setValue(0)
+        self.batch_status_label.setText("Starting batch processing...")
+        
+        # Disable the button during processing
+        self.process_all_button.setEnabled(False)
+        
+        try:
+            # Process all files with progress updates
+            def update_progress(message, percentage):
+                self.batch_status_label.setText(message)
+                self.progress_bar.setValue(int(percentage))
+                QApplication.processEvents()  # Ensure UI updates
+            
+            # Start processing
+            # Correct unpacking to expect 5 values
+            combined_df, processed_zip_files, report_file_paths, errors, merged_pdfs = download_and_process_all_files(update_progress)
+            
+            if combined_df.empty:
+                if errors:
+                    error_text = "\n".join(errors[:3])  # Show first 3 errors
+                    if len(errors) > 3:
+                        error_text += f"\n...and {len(errors) - 3} more errors."
+                    self.batch_status_label.setText(f"Batch processing completed with errors:\n{error_text}")
+                else:
+                    self.batch_status_label.setText("No data was processed. Please check the FTP server or try again.")
+            else:
+                # Update tabs with the combined data
+                self.csm_tab.update_data(combined_df)
+                
+                # Load merged PDF files if available
+                extracted_path = "data/extracted"
+                
+                # Load merged SkidTags.pdf
+                if "SkidTags" in merged_pdfs:
+                    self.skid_tags_tab.load_pdf(merged_pdfs["SkidTags"])
+                    self.status_indicator.set_status("Skid Tags", True)
+                else:
+                    print("No merged SkidTags PDF was created.")
+                    
+                # Load merged TrayTags.pdf
+                if "TrayTags" in merged_pdfs:
+                    self.tray_tags_tab.load_pdf(merged_pdfs["TrayTags"])
+                    self.status_indicator.set_status("Tray Tags", True)
+                else:
+                    print("No merged TrayTags PDF was created.")
+                
+                # Update money tab with combined report data
+                if report_file_paths: # Check if any report files were found
+                    from util import process_batch_rptlist
+                    combined_report_data, report_headers, report_skipped_lines = process_batch_rptlist(report_file_paths)
+                    self.money_tab.load_batch_report(combined_report_data, report_headers)
+                    if report_skipped_lines:
+                        print(f"Skipped {len(report_skipped_lines)} lines during batch report processing.")
+                        # Optionally, display skipped lines info in UI
+                else:
+                    print("DEBUG: No RptList.txt files found for batch processing.")
+                    self.money_tab.reset() # Clear money tab if no reports
+                    
+                # Update status indicator for ZIP files
+                self.status_indicator.set_status("ZIP", True)
+                
+                # Show success message
+                self.batch_status_label.setText(f"Successfully processed {len(processed_zip_files)} files. " + 
+                                              f"Combined data contains {len(combined_df)} records." +
+                                              (f" Merged {len(merged_pdfs)} PDF type(s)." if merged_pdfs else ""))
+                
+                # Set a batch name for reporting
+                batch_name = f"Batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                self.csm_tab.set_processed_zip_name(batch_name)
+                
+                # Update feedback
+                self.feedback_label.setText(f"Batch processing completed successfully: {len(processed_zip_files)} files processed.")
+                self.feedback_label.setStyleSheet("color: #009933;")
+                
+                # Set a generic date for batch processing
+                batch_date = datetime.now().strftime("%B %d, %Y")
+                self.date_label.setText(f"Batch Processed: {batch_date}")
+                self.date_label.adjustSize()
+                self.date_label.show()
+                self.resizeEvent(None)  # Reposition the label
+        except Exception as e:
+            self.batch_status_label.setText(f"Error during batch processing: {e}")
+            self.feedback_label.setText(f"Error during batch processing: {e}")
+            self.feedback_label.setStyleSheet("color: #cc3300;")
+        finally:
+            # Re-enable the button
+            self.process_all_button.setEnabled(True)
+
     def select_zip_file(self):
         """Handle ZIP file selection and reset data."""
         self.reset_all_tabs()
         selected_file = self.zip_dropdown.currentText()
-        if selected_file == "Please select a MailDat file":
+        if selected_file == "Please select a MailDat file" or selected_file == "Please select a historical MailDat file":
             return  # Do nothing if the default option is selected
 
         if selected_file:
             try:
-                # Download and process the selected ZIP file
-                from util import download_file_from_ftp  # Assuming this function exists in util.py
-
+                # Download and process the selected ZIP file based on current mode
+                from util import download_file_from_ftp, download_file_from_backup_ftp
+                
                 self.feedback_label.setText(f"Downloading {selected_file}...")
                 self.feedback_label.setStyleSheet("color: #0066cc;")
                 
-                local_file_path = download_file_from_ftp(selected_file)  # Download the selected file
+                # Use the appropriate download function based on current mode
+                if self.current_mode == "historical":
+                    local_file_path = download_file_from_backup_ftp(selected_file)
+                else:
+                    local_file_path = download_file_from_ftp(selected_file)
                 
                 self.feedback_label.setText(f"Processing {selected_file}...")
                 df_filtered = parse_zip_and_prepare_data(local_file_path)
@@ -365,11 +644,12 @@ class MainTab(QWidget):
 
                 # Extract the date from the file name
                 date_from_file = self.extract_date_from_file(local_file_path)
-                self.feedback_label.setText(f"Loaded data from {selected_file} (IHD: {date_from_file})")
+                mode_prefix = "Historical: " if self.current_mode == "historical" else ""
+                self.feedback_label.setText(f"Loaded data from {selected_file} ({mode_prefix}IHD: {date_from_file})")
                 self.feedback_label.setStyleSheet("color: #009933;")
 
                 # Update and show the date label
-                self.date_label.setText(f"IHD: {date_from_file}")
+                self.date_label.setText(f"{mode_prefix}IHD: {date_from_file}")
                 self.date_label.adjustSize()  # Adjust size for text
                 self.date_label.show()  # Show the date label
                 self.resizeEvent(None)  # Reposition the label after updating
@@ -440,7 +720,8 @@ class MainTab(QWidget):
         """Reposition the date label on window resize."""
         super().resizeEvent(event)
         # Position date label at the top-right corner
-        self.date_label.move(self.width() - self.date_label.width() - 20, 10)
+        if self.date_label.isVisible():
+            self.date_label.move(self.width() - self.date_label.width() - 20, 10)
 
 
     # def upload_zip(self):
@@ -623,7 +904,8 @@ class MainApp(QMainWindow):
                 if os.path.exists(stylesheet_path):
                     with open(stylesheet_path, "r") as f:
                         style_content = f.read()
-                        self.setStyleSheet(style_content)
+                        self.setStyleSheet(style_content)  # Apply globally
+                        self.main_tab.setStyleSheet(style_content)  # Apply to main tab
                     print(f"DEBUG: Loaded stylesheet from {stylesheet_path}")
                     self.stylesheet_loaded = True
                     break

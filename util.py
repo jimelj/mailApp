@@ -9,6 +9,10 @@ import re
 import posixpath
 import pandas as pd
 from pathlib import Path
+import logging
+from tqdm import tqdm
+import zipfile
+from datetime import datetime
 
 # def upload_to_ftps(file_path, host, username, password, remote_dir, port):
 #     # port = int(port)
@@ -503,3 +507,516 @@ class DDUSCFSearch:
         except Exception as e:
             print(f"Error merging ZIP data: {e}")
             return main_df  # Return the original DataFrame if merge fails
+
+# Add function to fetch backup files from the Backup folder
+def fetch_backup_ftp_files():
+    """
+    Fetch ZIP files from the backup folder on the FTPS server.
+    """
+    ftp_host = os.getenv("HOSTNAME1")
+    ftp_user = os.getenv("FTP_USERNAME1")
+    ftp_pass = os.getenv("FTP_SECRET1")
+    remote_dir = os.path.join(os.getenv("REMOTEDIR1").rstrip("/"), "Backup")  # Backup folder
+    port = int(os.getenv("PORT1", 990))
+
+    try:
+        buffer = BytesIO()
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/"
+        print(f"DEBUG: Backup FTP URL: {ftps_url}")
+
+        c = pycurl.Curl()
+        c.setopt(c.URL, ftps_url)
+        c.setopt(c.USERPWD, f"{ftp_user}:{ftp_pass}")
+        c.setopt(c.WRITEDATA, buffer)
+        c.setopt(c.SSL_VERIFYPEER, 0)
+        c.setopt(c.SSL_VERIFYHOST, 0)
+        c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)
+        c.setopt(c.FTP_USE_EPSV, 1)
+        c.setopt(c.VERBOSE, False)
+        c.setopt(c.CUSTOMREQUEST, "NLST")
+
+        c.perform()
+
+        # Check the response code
+        response_code = c.getinfo(c.RESPONSE_CODE)
+        if response_code != 226:
+            raise RuntimeError(f"Unexpected response code: {response_code}")
+
+        c.close()
+
+        def parse_date_from_filename(filename):
+            """Extract the date in the YYYYMMDD format from the filename."""
+            match = re.search(r"_\d{6}-", filename)
+            if match:
+                return match.group(0).strip("_-")
+            return None
+
+        # Decode the response and parse file names
+        response = buffer.getvalue().decode("utf-8")
+        print(f"DEBUG: Backup FTP Response:\n{response}")
+
+        # Split the response into lines and filter ZIP files
+        files = response.splitlines()
+        
+        # Clean up filenames and filter for ZIP files
+        zip_files = [f.strip() for f in files if f.strip().lower().endswith(".zip")]
+        print(f"DEBUG: Filtered Backup ZIP files:\n{zip_files}")
+
+        # Sort ZIP files by the extracted date
+        zip_files.sort(key=parse_date_from_filename, reverse=True)
+        
+        # Return all backup ZIP files
+        return zip_files
+
+    except pycurl.error as e:
+        raise RuntimeError(f"Failed to fetch backup files from FTP: {e}")
+
+# Add function to download a file from the backup folder
+def download_file_from_backup_ftp(filename):
+    """
+    Download a specific ZIP file from the backup folder on the FTPS server.
+
+    Args:
+        filename (str): The name of the file to download.
+
+    Returns:
+        str: The local path to the downloaded file.
+    """
+    ftp_host = os.getenv("HOSTNAME1")
+    ftp_user = os.getenv("FTP_USERNAME1")
+    ftp_pass = os.getenv("FTP_SECRET1")
+    remote_dir = os.path.join(os.getenv("REMOTEDIR1").rstrip("/"), "Backup")  # Backup folder
+    port = os.getenv("PORT1", 990)
+    local_dir = "data"
+
+    try:
+        os.makedirs(local_dir, exist_ok=True)
+        local_path = os.path.join(local_dir, filename)
+
+        # Encode the file name to handle special characters
+        encoded_filename = quote(filename)
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/{encoded_filename}"
+        print(f"DEBUG: Backup FTP URL for download: {ftps_url}")
+
+        with open(local_path, "wb") as f:
+            c = pycurl.Curl()
+            c.setopt(c.URL, ftps_url)
+            c.setopt(c.USERPWD, f"{ftp_user}:{ftp_pass}")
+            c.setopt(c.WRITEDATA, f)
+            c.setopt(c.SSL_VERIFYPEER, 0)
+            c.setopt(c.SSL_VERIFYHOST, 0)
+            c.setopt(c.FTP_SSL, pycurl.FTPSSL_ALL)
+            c.setopt(c.FTP_USE_EPSV, 1)
+            c.setopt(c.VERBOSE, True)
+
+            c.perform()
+
+            # Check the response code
+            response_code = c.getinfo(c.RESPONSE_CODE)
+            if response_code not in (226, 250):
+                raise RuntimeError(f"Unexpected response code: {response_code}")
+
+            c.close()
+
+        print(f"DEBUG: Backup file downloaded successfully to {local_path}")
+        return local_path
+
+    except pycurl.error as e:
+        raise RuntimeError(f"Failed to download backup file {filename} from FTP: {e}")
+
+# Add function to download and process all ZIP files
+def download_and_process_all_files(callback_fn=None):
+    """
+    Download and process all recent ZIP files from the FTP server.
+    
+    Args:
+        callback_fn: Optional callback function to report progress
+        
+    Returns:
+        tuple: (combined DataFrame, list of processed zip file paths, list of report file paths, list of error messages, dict of merged PDF paths)
+    """
+    # Fetch all recent ZIP files
+    zip_files = fetch_latest_ftp_files()
+    
+    if not zip_files or len(zip_files) == 0:
+        return pd.DataFrame(), [], [], ["No ZIP files found on the FTP server."], {}
+    
+    all_dataframes = []
+    all_zip_file_paths = [] # Renamed for clarity
+    all_report_file_paths = [] # Added to collect report paths
+    error_messages = []
+    skid_tags_pdfs = []
+    tray_tags_pdfs = []
+    
+    # Create temporary directories
+    temp_pdf_dir = os.path.join("data", "temp_pdfs")
+    os.makedirs(temp_pdf_dir, exist_ok=True)
+    temp_report_dir = os.path.join("data", "temp_reports") # Added for reports
+    os.makedirs(temp_report_dir, exist_ok=True)
+    
+    # Process each ZIP file
+    for i, zip_file in enumerate(zip_files):
+        if callback_fn:
+            callback_fn(f"Processing file {i+1} of {len(zip_files)}: {zip_file}", (i / len(zip_files)) * 100)
+            
+        try:
+            # Download the ZIP file
+            local_file_path = download_file_from_ftp(zip_file)
+            all_zip_file_paths.append(local_file_path)
+            
+            # Extract and process the ZIP file
+            from csmController import parse_zip_and_prepare_data
+            df = parse_zip_and_prepare_data(local_file_path) # This extracts the zip
+            
+            # Add the source file name to identify the data source
+            df['Source_ZIP'] = zip_file
+            
+            # Add DataFrame to the list
+            all_dataframes.append(df)
+            
+            # Check for SkidTags.pdf, TrayTags.pdf, and RptList.txt
+            extracted_path = "data/extracted" # Path where parse_zip extracts to
+            reports_subpath = os.path.join(extracted_path, "Reports")
+            zip_name_base = os.path.splitext(zip_file)[0]
+            
+            # Copy SkidTags.pdf to temp directory with unique name
+            skid_tags_path = os.path.join(reports_subpath, "SkidTags.pdf")
+            if os.path.exists(skid_tags_path):
+                temp_skid_path = os.path.join(temp_pdf_dir, f"SkidTags_{zip_name_base}.pdf")
+                shutil.copy2(skid_tags_path, temp_skid_path)
+                skid_tags_pdfs.append(temp_skid_path)
+            
+            # Copy TrayTags.pdf to temp directory with unique name
+            tray_tags_path = os.path.join(reports_subpath, "TrayTags.pdf")
+            if os.path.exists(tray_tags_path):
+                temp_tray_path = os.path.join(temp_pdf_dir, f"TrayTags_{zip_name_base}.pdf")
+                shutil.copy2(tray_tags_path, temp_tray_path)
+                tray_tags_pdfs.append(temp_tray_path)
+
+            # Copy RptList.txt to temp directory with unique name
+            report_list_path = os.path.join(reports_subpath, "RptList.txt")
+            if os.path.exists(report_list_path):
+                temp_report_path = os.path.join(temp_report_dir, f"RptList_{zip_name_base}.txt")
+                shutil.copy2(report_list_path, temp_report_path)
+                all_report_file_paths.append(temp_report_path)
+            
+            if callback_fn:
+                callback_fn(f"Successfully processed {zip_file}", ((i + 0.5) / len(zip_files)) * 100)
+                
+        except Exception as e:
+            error_msg = f"Error processing {zip_file}: {str(e)}"
+            error_messages.append(error_msg)
+            print(f"ERROR: {error_msg}")
+            if callback_fn:
+                callback_fn(error_msg, ((i + 0.5) / len(zip_files)) * 100)
+    
+    # Merge PDF files
+    merged_pdfs = {}
+    if callback_fn: callback_fn("Merging PDF files...", 95)
+    
+    # Define final merged PDF paths within data/extracted/Reports
+    final_reports_dir = os.path.join(extracted_path, "Reports")
+    os.makedirs(final_reports_dir, exist_ok=True)
+    
+    if skid_tags_pdfs:
+        merged_skid_path = os.path.join(final_reports_dir, "SkidTags_Merged.pdf") # Changed name
+        if merge_pdf_files(skid_tags_pdfs, merged_skid_path):
+            merged_pdfs["SkidTags"] = merged_skid_path
+    
+    if tray_tags_pdfs:
+        merged_tray_path = os.path.join(final_reports_dir, "TrayTags_Merged.pdf") # Changed name
+        if merge_pdf_files(tray_tags_pdfs, merged_tray_path):
+            merged_pdfs["TrayTags"] = merged_tray_path
+    
+    # Combine all DataFrames if we have any
+    if all_dataframes:
+        combined_df = pd.concat(all_dataframes, ignore_index=True)
+        if callback_fn: callback_fn("All files processed and combined", 100)
+        return combined_df, all_zip_file_paths, all_report_file_paths, error_messages, merged_pdfs
+    else:
+        return pd.DataFrame(), all_zip_file_paths, all_report_file_paths, error_messages, merged_pdfs
+
+
+# Add function to merge DataFrames from multiple CSM files
+def merge_csm_dataframes(dataframes):
+    """
+    Merge multiple CSM DataFrames into a single DataFrame.
+    
+    Args:
+        dataframes (list): List of DataFrames to merge
+        
+    Returns:
+        DataFrame: The merged DataFrame
+    """
+    if not dataframes:
+        return pd.DataFrame()
+    
+    # Combine all DataFrames, removing duplicates based on container ID
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    
+    # Remove duplicates based on container ID if it exists
+    if 'Container ID' in combined_df.columns:
+        combined_df = combined_df.drop_duplicates(subset='Container ID')
+    
+    return combined_df
+
+# Add a function to merge multiple PDF files
+def merge_pdf_files(pdf_paths, output_path):
+    """
+    Merge multiple PDF files into a single PDF file.
+    
+    Args:
+        pdf_paths (list): List of paths to PDF files to merge
+        output_path (str): Path to save the merged PDF file
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        if not pdf_paths:
+            logging.warning("No PDF files to merge")
+            return False
+            
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Create a new PDF document
+        merged_pdf = fitz.open()
+        
+        # Track page hashes to detect duplicates
+        page_hashes = set()
+        duplicate_count = 0
+        
+        # Add each PDF file to the merged document
+        for pdf_path in pdf_paths:
+            if os.path.exists(pdf_path):
+                try:
+                    pdf_document = fitz.open(pdf_path)
+                    
+                    # Detect "TrayTags" in the filename - special handling for duplicates
+                    is_tray_tags = "TrayTags" in os.path.basename(pdf_path)
+                    
+                    # Process each page
+                    for page_num in range(pdf_document.page_count):
+                        page = pdf_document[page_num]
+                        
+                        # For tray tags, create a hash of the page content to detect duplicates
+                        if is_tray_tags:
+                            # Extract text as a simple way to compare content
+                            page_text = page.get_text()
+                            # Create a hash of the text content
+                            page_hash = hash(page_text)
+                            
+                            # Skip if this page content already exists
+                            if page_hash in page_hashes:
+                                duplicate_count += 1
+                                print(f"Skipping duplicate page {page_num+1} in {pdf_path}")
+                                continue
+                                
+                            # Add this page's hash to the set
+                            page_hashes.add(page_hash)
+                        
+                        # Insert the page to the merged document
+                        merged_pdf.insert_pdf(pdf_document, from_page=page_num, to_page=page_num)
+                    
+                    pdf_document.close()
+                    logging.info(f"Added {pdf_path} to merged PDF")
+                except Exception as e:
+                    logging.error(f"Error adding {pdf_path} to merged PDF: {e}")
+        
+        # Save the merged PDF
+        if merged_pdf.page_count > 0:
+            merged_pdf.save(output_path)
+            if duplicate_count > 0:
+                logging.info(f"Removed {duplicate_count} duplicate pages from the merged PDF")
+            merged_pdf.close()
+            logging.info(f"Merged PDF saved to {output_path}")
+            return True
+        else:
+            logging.warning("No pages were added to the merged PDF")
+            merged_pdf.close()
+            return False
+            
+    except Exception as e:
+        logging.error(f"Error merging PDF files: {e}")
+        return False
+
+# Function to process a single RptList.txt file
+def process_single_rptlist(file_path):
+    """
+    Processes a single RptList.txt file and returns structured data and totals.
+    
+    Returns:
+        tuple: (data_rows, report_totals, headers, skipped_lines)
+               - data_rows: List of processed data rows (DDU/SCF)
+               - report_totals: Dictionary containing 'copies', 'weight', 'postage'
+               - headers: List of column headers
+               - skipped_lines: List of lines that were skipped during processing
+    """
+    data_rows = []
+    headers = ["Entry Point Name", "Drop Site Key", "Total Copies", "Total Weight", "Total Postage", "CPM", "AVR Piece Weight"]
+    skipped_lines = []
+    report_totals = {'copies': 0, 'weight': 0.0, 'postage': 0.0}
+
+    try:
+        with open(file_path, "r") as file:
+            lines = file.readlines()
+    except FileNotFoundError:
+        return [], report_totals, headers, [f"File not found: {file_path}"]
+    except Exception as e:
+        return [], report_totals, headers, [f"Error opening file {file_path}: {e}"]
+
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+
+        # Skip irrelevant lines
+        if not line or line.startswith(("", "Summary", "Page", "CBA", "-------")):
+            i += 1
+            continue
+
+        # Process the totals row
+        if line.startswith("Report Totals:"):
+            parts = line.split(":", 1)
+            if len(parts) < 2:
+                skipped_lines.append(f"Malformed totals line: {line}")
+                i += 1
+                continue
+            totals_line = parts[1].strip()
+            tokens = totals_line.split()
+            tokens = [t for t in tokens if t != "$"] # Filter out stray '$'
+            if len(tokens) < 12:
+                skipped_lines.append(f"Insufficient tokens in totals line: {line}")
+                i += 1
+                continue
+            try:
+                report_totals['copies'] = int(float(tokens[9]))
+                report_totals['weight'] = float(tokens[10])
+                report_totals['postage'] = float(tokens[11])
+            except ValueError as e:
+                skipped_lines.append(f"Error converting totals tokens in line: {line} | {e}")
+            i += 1 # Move past the totals line
+            continue # Totals are extracted, move to next line
+
+        # Process regular data lines (DDU/SCF)
+        if line.startswith("DDU-") or line.startswith("SCF-"):
+            parts = line.split()
+            name_tokens = []
+            numeric_start_index = None
+            for idx, token in enumerate(parts):
+                if token == "$": continue
+                try:
+                    float(token.replace("$", ""))
+                    numeric_start_index = idx
+                    break
+                except ValueError:
+                    name_tokens.append(token)
+            
+            if numeric_start_index is None:
+                skipped_lines.append(f"Could not find numeric data in line: {line}")
+                i += 1
+                continue
+
+            entry_point_name = " ".join(name_tokens)
+            numerical_data = parts[numeric_start_index:]
+            numerical_data = [p for p in numerical_data if p != "$"]
+
+            if len(numerical_data) < 12:
+                skipped_lines.append(f"Insufficient numeric tokens in line: {line}")
+                i += 1
+                continue
+
+            try:
+                total_copies = int(float(numerical_data[9]))
+                total_weight = float(numerical_data[10])
+                total_postage = float(numerical_data[11])
+            except ValueError as e:
+                skipped_lines.append(f"Error converting numeric tokens in line: {line} | {e}")
+                i += 1
+                continue
+
+            # Calculate CPM and AVR Piece Weight
+            cpm = (total_postage / total_copies) * 1000 if total_copies != 0 else 0
+            piece_weight = (total_weight / total_copies) * 16 if total_copies != 0 else 0 # Assuming weight is in lbs, convert to oz
+
+            # Look ahead for the drop site key
+            drop_site_key = None
+            j = i + 1
+            while j < len(lines):
+                next_line = lines[j].strip()
+                if next_line and not next_line.startswith("-------"):
+                    if next_line.startswith("Drop Site Key:"):
+                        drop_site_key = next_line.split(":", 1)[1].strip()
+                    break # Found relevant next line or key
+                j += 1
+            i = j + 1 # Move main loop index past the key line
+
+            formatted_row = [
+                entry_point_name,
+                drop_site_key,
+                total_copies,
+                total_weight,
+                f"${total_postage:.2f}",
+                f"${cpm:.2f}",
+                f"{piece_weight:.2f} oz" # Add unit for clarity
+            ]
+            data_rows.append(formatted_row)
+        else:
+            i += 1 # Move to the next line if it's not DDU/SCF/Total
+
+    return data_rows, report_totals, headers, skipped_lines
+
+# Function to process multiple RptList.txt files for batch mode
+def process_batch_rptlist(report_paths):
+    """
+    Processes multiple RptList.txt files, combines the data, and calculates grand totals.
+    
+    Args:
+        report_paths (list): List of paths to RptList.txt files.
+        
+    Returns:
+        tuple: (combined_data, headers, all_skipped_lines)
+               - combined_data: List of all data rows plus a calculated grand total row.
+               - headers: List of column headers.
+               - all_skipped_lines: List of all skipped lines from all files.
+    """
+    combined_data_rows = []
+    grand_total_copies = 0
+    grand_total_weight = 0.0
+    grand_total_postage = 0.0
+    all_skipped_lines = []
+    headers = []
+
+    if not report_paths:
+        return [], ["Entry Point Name", "Drop Site Key", "Total Copies", "Total Weight", "Total Postage", "CPM", "AVR Piece Weight"], ["No report files provided for batch processing."]
+
+    for report_path in report_paths:
+        data_rows, report_totals, current_headers, skipped_lines = process_single_rptlist(report_path)
+        
+        combined_data_rows.extend(data_rows)
+        grand_total_copies += report_totals['copies']
+        grand_total_weight += report_totals['weight']
+        grand_total_postage += report_totals['postage']
+        all_skipped_lines.extend(skipped_lines)
+        
+        if not headers: # Capture headers from the first processed file
+            headers = current_headers
+
+    # Calculate grand total CPM and Average Piece Weight
+    grand_cpm = (grand_total_postage / grand_total_copies) * 1000 if grand_total_copies != 0 else 0
+    grand_piece_weight = (grand_total_weight / grand_total_copies) * 16 if grand_total_copies != 0 else 0
+
+    # Create the grand total row
+    grand_total_row = [
+        "Grand Totals:",
+        "",
+        grand_total_copies,
+        grand_total_weight,
+        f"${grand_total_postage:.2f}",
+        f"${grand_cpm:.2f}",
+        f"{grand_piece_weight:.2f} oz"
+    ]
+    
+    combined_data_rows.append(grand_total_row)
+
+    return combined_data_rows, headers, all_skipped_lines

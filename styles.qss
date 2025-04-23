@@ -179,6 +179,7 @@ QTableWidget {
 
 QTableWidget::item {
     padding: 4px;
+    color: #000000; /* Set text color to black for table items */
 }
 
 QTableWidget::item:selected {
@@ -281,7 +282,7 @@ QGroupBox::title {
 
 /* Money Tab Specific Styling */
 #moneyTableWidget {
-    font-family: 'Courier New', monospace;
+    /* font-family: 'Courier New', monospace; */ /* Removed to use default font */
 }
 
 /* StatusIndicator Styling */
