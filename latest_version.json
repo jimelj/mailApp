@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.4",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.7.3 (af1d7b8)\n  - - updating zips by address zip data (beca037)",
+  "version": "v1.7.5",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.7.4 (c9d6882)\n  - - batch mode! (22663b4)\n  - - batch mode! (b694ef7)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.4/PostFlow-v1.7.4.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.4/PostFlow-v1.7.4.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.5/PostFlow-v1.7.5.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.5/PostFlow-v1.7.5.dmg"
   }
 }
