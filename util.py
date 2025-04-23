@@ -516,12 +516,15 @@ def fetch_backup_ftp_files():
     ftp_host = os.getenv("HOSTNAME1")
     ftp_user = os.getenv("FTP_USERNAME1")
     ftp_pass = os.getenv("FTP_SECRET1")
-    remote_dir = os.path.join(os.getenv("REMOTEDIR1").rstrip("/"), "Backup")  # Backup folder
+    # Use posixpath.join for FTP paths
+    base_remote_dir = os.getenv("REMOTEDIR1", "/").rstrip("/")
+    remote_backup_dir = posixpath.join(base_remote_dir, "Backup")
     port = int(os.getenv("PORT1", 990))
 
     try:
         buffer = BytesIO()
-        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/"
+        # Ensure the URL ends with a slash for directory listing
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_backup_dir}/"
         print(f"DEBUG: Backup FTP URL: {ftps_url}")
 
         c = pycurl.Curl()
@@ -585,7 +588,9 @@ def download_file_from_backup_ftp(filename):
     ftp_host = os.getenv("HOSTNAME1")
     ftp_user = os.getenv("FTP_USERNAME1")
     ftp_pass = os.getenv("FTP_SECRET1")
-    remote_dir = os.path.join(os.getenv("REMOTEDIR1").rstrip("/"), "Backup")  # Backup folder
+    # Use posixpath.join for FTP paths
+    base_remote_dir = os.getenv("REMOTEDIR1", "/").rstrip("/")
+    remote_backup_dir = posixpath.join(base_remote_dir, "Backup")
     port = os.getenv("PORT1", 990)
     local_dir = "data"
 
@@ -595,7 +600,9 @@ def download_file_from_backup_ftp(filename):
 
         # Encode the file name to handle special characters
         encoded_filename = quote(filename)
-        ftps_url = f"ftps://{ftp_host}:{port}{remote_dir}/{encoded_filename}"
+        # Construct the full file path using posixpath.join
+        remote_file_path = posixpath.join(remote_backup_dir, encoded_filename)
+        ftps_url = f"ftps://{ftp_host}:{port}{remote_file_path}"
         print(f"DEBUG: Backup FTP URL for download: {ftps_url}")
 
         with open(local_path, "wb") as f:
