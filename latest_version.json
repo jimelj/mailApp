@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.6",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.7.5 (1434ca9)\n  - - fix ftp error (b60a7f9)",
+  "version": "v1.7.7",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.7.6 (89bdfe6)\n  - - critical update fixed CSM merge issue (825c202)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.6/PostFlow-v1.7.6.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.6/PostFlow-v1.7.6.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.7/PostFlow-v1.7.7.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.7/PostFlow-v1.7.7.dmg"
   }
 }
