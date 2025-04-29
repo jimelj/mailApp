@@ -11,6 +11,7 @@ import webbrowser
 from util import upload_to_ftps, DDUSCFSearch
 from dotenv import load_dotenv
 from pathlib import Path
+import shutil
 # Conditional import for Windows-specific packages
 if platform.system() == "Windows":
     import win32com.client
@@ -19,14 +20,33 @@ if platform.system() == "Windows":
 
 
 
+def cleanup_extracted_directories():
+    """Clean up all extracted directories before processing."""
+    extracted_base = os.path.join("data", "extracted")
+    if os.path.exists(extracted_base):
+        for item in os.listdir(extracted_base):
+            item_path = os.path.join(extracted_base, item)
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+    else:
+        os.makedirs(extracted_base, exist_ok=True)
+
+
 def parse_zip_and_prepare_data(zip_file_path):
     """Extracts a ZIP file and parses the CSM data."""
-
+    # Clean up any existing extracted directories
+    cleanup_extracted_directories()
+    
     # Add debug statement to log data type
     print(f"DEBUG: zip_file_path type - {type(zip_file_path)}, Value - {zip_file_path}")
-    extracted_folder = "data/extracted"
-
-    # Ensure the extracted folder exists
+    
+    # Create a unique extraction directory based on the ZIP file name
+    zip_name = os.path.basename(zip_file_path)
+    extracted_folder = os.path.join("data", "extracted", f"extract_{zip_name}")
+    
+    # Ensure the extracted folder exists and is empty
+    if os.path.exists(extracted_folder):
+        shutil.rmtree(extracted_folder)
     os.makedirs(extracted_folder, exist_ok=True)
 
     # Extract the ZIP file
@@ -408,30 +428,16 @@ class CSMTab(QWidget):
 
     def update_data(self, df_filtered):
         """Updates the tab with new data."""
+        print(f"DEBUG: CSMTab.update_data received DataFrame with shape: {df_filtered.shape}")
+        print(f"DEBUG: DataFrame columns: {df_filtered.columns.tolist()}")
+        if 'Source_ZIP' in df_filtered.columns:
+            print(f"DEBUG: Number of unique Source_ZIP values: {df_filtered['Source_ZIP'].nunique()}")
         self.df_filtered = df_filtered
         self.update_table()
 
-    # def update_table(self):
-    #     """Updates the table widget to display the DataFrame."""
-    #     if self.df_filtered.empty:
-    #         self.table.clear()
-    #         self.table.setRowCount(0)
-    #         self.table.setColumnCount(0)
-    #         self.layout.addWidget(QLabel("No CSM data available. Please upload a ZIP file."))
-    #     else:
-    #         self.table.setRowCount(len(self.df_filtered))
-    #         self.table.setColumnCount(len(self.df_filtered.columns))
-    #         self.table.setHorizontalHeaderLabels(self.df_filtered.columns)
-
-    #         for row_idx, row in self.df_filtered.iterrows():
-    #             for col_idx, value in enumerate(row):
-    #                 self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
-
-    #         header = self.table.horizontalHeader()
-    #         for col in range(len(self.df_filtered.columns)):
-    #             header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
     def update_table(self):
         """Updates the table widget to display the DataFrame."""
+        print("DEBUG: CSMTab.update_table called")
         # Check if a "No CSM data available" QLabel exists, and remove it if present
         for i in reversed(range(self.layout.count())):
             widget = self.layout.itemAt(i).widget()
@@ -439,13 +445,14 @@ class CSMTab(QWidget):
                 widget.deleteLater()  # Safely delete the label widget
 
         if self.df_filtered.empty:
-            print("DataFrame is empty!")  # Debugging
+            print("DEBUG: DataFrame is empty!")
             self.table.setRowCount(0)
             self.table.setColumnCount(0)
             if not any(isinstance(self.layout.itemAt(i).widget(), QLabel) for i in range(self.layout.count())):
                 self.layout.addWidget(QLabel("No CSM data available. Please upload a ZIP file."))
         else:
-            # print("DataFrame is not empty!")  # Debugging
+            print(f"DEBUG: Updating table with DataFrame shape: {self.df_filtered.shape}")
+            print(f"DEBUG: Table columns: {self.df_filtered.columns.tolist()}")
             self.table.setRowCount(len(self.df_filtered))
             self.table.setColumnCount(len(self.df_filtered.columns))
             self.table.setHorizontalHeaderLabels(self.df_filtered.columns)

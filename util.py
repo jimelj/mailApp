@@ -634,35 +634,34 @@ def download_file_from_backup_ftp(filename):
 # Add function to download and process all ZIP files
 def download_and_process_all_files(callback_fn=None):
     """
-    Download and process all recent ZIP files from the FTP server.
-    
-    Args:
-        callback_fn: Optional callback function to report progress
-        
-    Returns:
-        tuple: (combined DataFrame, list of processed zip file paths, list of report file paths, list of error messages, dict of merged PDF paths)
+    Downloads and processes all available ZIP files from the FTP server.
+    Returns a tuple containing:
+    - combined_df: The merged DataFrame containing all processed data
+    - processed_zip_files: List of processed ZIP file paths
+    - report_file_paths: List of processed report file paths
+    - error_messages: List of any error messages encountered
+    - merged_pdfs: Dictionary of merged PDF file paths
     """
-    # Fetch all recent ZIP files
+    print("DEBUG: Starting download_and_process_all_files")
     zip_files = fetch_latest_ftp_files()
-    
-    if not zip_files or len(zip_files) == 0:
-        return pd.DataFrame(), [], [], ["No ZIP files found on the FTP server."], {}
+    print(f"DEBUG: Found {len(zip_files)} ZIP files to process")
     
     all_dataframes = []
-    all_zip_file_paths = [] # Renamed for clarity
-    all_report_file_paths = [] # Added to collect report paths
+    all_zip_file_paths = []
+    all_report_file_paths = []
     error_messages = []
     skid_tags_pdfs = []
     tray_tags_pdfs = []
     
-    # Create temporary directories
-    temp_pdf_dir = os.path.join("data", "temp_pdfs")
+    # Create temporary directories for PDFs and reports
+    temp_pdf_dir = "data/temp_pdfs"
+    temp_report_dir = "data/temp_reports"
     os.makedirs(temp_pdf_dir, exist_ok=True)
-    temp_report_dir = os.path.join("data", "temp_reports") # Added for reports
     os.makedirs(temp_report_dir, exist_ok=True)
     
     # Process each ZIP file
     for i, zip_file in enumerate(zip_files):
+        print(f"DEBUG: Processing file {i+1}/{len(zip_files)}: {zip_file}")
         if callback_fn:
             callback_fn(f"Processing file {i+1} of {len(zip_files)}: {zip_file}", (i / len(zip_files)) * 100)
             
@@ -673,17 +672,25 @@ def download_and_process_all_files(callback_fn=None):
             
             # Extract and process the ZIP file
             from csmController import parse_zip_and_prepare_data
-            df = parse_zip_and_prepare_data(local_file_path) # This extracts the zip
+            # Get the unique extraction path used by parse_zip_and_prepare_data
+            zip_name = os.path.basename(local_file_path)
+            unique_extracted_folder = os.path.join("data", "extracted", f"extract_{zip_name}")
+            
+            # Now call parse_zip_and_prepare_data which extracts to the unique folder
+            df = parse_zip_and_prepare_data(local_file_path)
+
+            print(f"DEBUG: Processed DataFrame shape: {df.shape}")
+            print(f"DEBUG: DataFrame columns: {df.columns.tolist()}")
             
             # Add the source file name to identify the data source
             df['Source_ZIP'] = zip_file
             
             # Add DataFrame to the list
             all_dataframes.append(df)
+            print(f"DEBUG: Added DataFrame to list. Total DataFrames: {len(all_dataframes)}")
             
-            # Check for SkidTags.pdf, TrayTags.pdf, and RptList.txt
-            extracted_path = "data/extracted" # Path where parse_zip extracts to
-            reports_subpath = os.path.join(extracted_path, "Reports")
+            # Check for SkidTags.pdf, TrayTags.pdf, and RptList.txt in the unique extracted path
+            reports_subpath = os.path.join(unique_extracted_folder, "Reports") # Use the unique path
             zip_name_base = os.path.splitext(zip_file)[0]
             
             # Copy SkidTags.pdf to temp directory with unique name
@@ -721,26 +728,37 @@ def download_and_process_all_files(callback_fn=None):
     merged_pdfs = {}
     if callback_fn: callback_fn("Merging PDF files...", 95)
     
-    # Define final merged PDF paths within data/extracted/Reports
-    final_reports_dir = os.path.join(extracted_path, "Reports")
-    os.makedirs(final_reports_dir, exist_ok=True)
+    # Define final merged PDF paths within a dedicated directory
+    final_merged_dir = "data/merged_reports"
+    os.makedirs(final_merged_dir, exist_ok=True)
     
     if skid_tags_pdfs:
-        merged_skid_path = os.path.join(final_reports_dir, "SkidTags_Merged.pdf") # Changed name
+        merged_skid_path = os.path.join(final_merged_dir, "SkidTags_Merged.pdf")
         if merge_pdf_files(skid_tags_pdfs, merged_skid_path):
             merged_pdfs["SkidTags"] = merged_skid_path
     
     if tray_tags_pdfs:
-        merged_tray_path = os.path.join(final_reports_dir, "TrayTags_Merged.pdf") # Changed name
+        merged_tray_path = os.path.join(final_merged_dir, "TrayTags_Merged.pdf")
         if merge_pdf_files(tray_tags_pdfs, merged_tray_path):
             merged_pdfs["TrayTags"] = merged_tray_path
     
     # Combine all DataFrames if we have any
     if all_dataframes:
+        print("DEBUG: Starting DataFrame concatenation")
+        print(f"DEBUG: Number of DataFrames to merge: {len(all_dataframes)}")
+        for i, df in enumerate(all_dataframes):
+            print(f"DEBUG: DataFrame {i+1} shape: {df.shape}")
+            print(f"DEBUG: DataFrame {i+1} columns: {df.columns.tolist()}")
+        
         combined_df = pd.concat(all_dataframes, ignore_index=True)
+        print(f"DEBUG: Combined DataFrame shape: {combined_df.shape}")
+        print(f"DEBUG: Combined DataFrame columns: {combined_df.columns.tolist()}")
+        print(f"DEBUG: Number of unique Source_ZIP values: {combined_df['Source_ZIP'].nunique()}")
+        
         if callback_fn: callback_fn("All files processed and combined", 100)
         return combined_df, all_zip_file_paths, all_report_file_paths, error_messages, merged_pdfs
     else:
+        print("DEBUG: No DataFrames to combine")
         return pd.DataFrame(), all_zip_file_paths, all_report_file_paths, error_messages, merged_pdfs
 
 
