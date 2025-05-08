@@ -637,7 +637,6 @@ class CSMTab(QWidget):
                     return f"{new_date} {time_part}"
                 return row['Pickup Date*']  # For CBAM or anything else, keep as is
             
-            capstone_df['Pickup Date*'] = capstone_df.apply(adjust_pickup_date, axis=1)
 
             # Adjust Order Type for outlier cases where "Destination Name*" contains "SCF"
             capstone_df.loc[
@@ -655,6 +654,7 @@ class CSMTab(QWidget):
             # Drop rows where 'Parcel Barcode' starts with "11"
             capstone_df = capstone_df[~capstone_df["Parcel Barcode"].astype(str).str.startswith("11", na=False)]
 
+            capstone_df['Pickup Date*'] = capstone_df.apply(adjust_pickup_date, axis=1)
             # Save the Capstone report to a CSV file
             capstone_report_name = f"Capstone_Report {self.processed_zip_name}.CSV"
             file_path, _ = QFileDialog.getSaveFileName(self, "Save Capstone Report", capstone_report_name, "CSV Files (*.csv)")
