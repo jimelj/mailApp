@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.7",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.7.6 (89bdfe6)\n  - - critical update fixed CSM merge issue (825c202)",
+  "version": "v1.7.8",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.7.7 (5d5eaf2)\n  - - fixed SCF date issue (93ef9ce)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.7/PostFlow-v1.7.7.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.7/PostFlow-v1.7.7.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.8/PostFlow-v1.7.8.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.8/PostFlow-v1.7.8.dmg"
   }
 }
