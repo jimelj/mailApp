@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.8",
-  "changelog": "  - - Update VERSION and latest_version.json to v1.7.7 (5d5eaf2)\n  - - fixed SCF date issue (93ef9ce)",
+  "version": "v1.8.0",
+  "changelog": "  - - Update VERSION and latest_version.json to v1.7.8 (f4ccdf4)\n  - - Updating Zips\ by\ Address\ File\ Group.xlsx (2443f8f)\n  - - fixing (346771a)",
   "download_url": {
-    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.7.8/PostFlow-v1.7.8.exe",
-    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.7.8/PostFlow-v1.7.8.dmg"
+    "windows": "https://github.com/jimelj/mailApp/releases/download/v1.8.0/PostFlow-v1.8.0.exe",
+    "darwin": "https://github.com/jimelj/mailApp/releases/download/v1.8.0/PostFlow-v1.8.0.dmg"
   }
 }
